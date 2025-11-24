@@ -1,0 +1,208 @@
+/* Auth Pages Common Styles */
+
+.login-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+.login-form-wrapper {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.login-form-modern {
+    width: 100%;
+}
+
+.login-form-modern .ant-form-item {
+    margin-bottom: 20px;
+}
+
+.login-input {
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.login-input .ant-input {
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.login-input .ant-input:focus,
+.login-input .ant-input-focused {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1);
+}
+
+.input-icon {
+    color: #999;
+    margin-right: 8px;
+}
+
+.login-form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.login-form-options .ant-checkbox-wrapper {
+    color: #666;
+    font-size: 14px;
+}
+
+.forgot-password-link {
+    color: #ff6b35;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.forgot-password-link:hover {
+    color: #e55a2b;
+    text-decoration: underline;
+}
+
+.login-button {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    border-radius: 8px;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.login-button:hover {
+    background: #e55a2b;
+    border-color: #e55a2b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.register-link-container {
+    text-align: center;
+    margin-top: 24px;
+    color: #666;
+    font-size: 14px;
+}
+
+.register-link {
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.register-link:hover {
+    color: #e55a2b;
+    text-decoration: underline;
+}
+
+.reset-button {
+    border-radius: 8px;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-color: #d9d9d9;
+    transition: all 0.3s;
+}
+
+.reset-button:hover {
+    border-color: #ff6b35;
+    color: #ff6b35;
+    transform: translateY(-1px);
+}
+
+/* Auth Container cho các trang khác */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-form {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.auth-form-large {
+    padding: 30px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.auth-logo {
+    max-width: 120px;
+    margin-bottom: 20px;
+}
+
+.auth-form h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.register-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.change-password-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.change-password-form-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+}
+
+.change-password-form-wrapper h1 {
+    color: #333;
+    margin-bottom: 30px;
+}

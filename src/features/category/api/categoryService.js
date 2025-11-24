@@ -16,3 +16,19 @@ export const createCategory = (categoryData) => {
     });
 };
 
+export const updateCategory = (id, categoryData) => {
+    return apiClient.put(`categories/${id}`, categoryData, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+};
+
+export const deleteCategory = (id) => {
+    return apiClient.delete(`categories/${id}`);
+};
+
+export const getCategoryById = (id) => {
+    return apiClient.get(`categories/${id}`);
+};
+

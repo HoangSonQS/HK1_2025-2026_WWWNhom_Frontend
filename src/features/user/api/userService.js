@@ -50,3 +50,29 @@ export const setDefaultAddress = (addressId) => {
     return apiClient.put(`user/addresses/${addressId}/set-default`);
 };
 
+/**
+ * Admin Account APIs - Quản lý tài khoản (chỉ dành cho admin)
+ */
+export const getAllAccounts = () => {
+    return apiClient.get('admin/accounts');
+};
+
+export const updateAccountStatus = (accountId, isActive) => {
+    return apiClient.put(`admin/accounts/${accountId}/status`, { isActive }, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+};
+
+/**
+ * Cập nhật thông tin tài khoản khác (chỉ dành cho admin)
+ */
+export const updateAccountById = (accountId, accountData) => {
+    return apiClient.put(`admin/accounts/${accountId}`, accountData, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+};
+

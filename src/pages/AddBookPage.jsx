@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Form, Input, InputNumber, Button, Upload, message, Select } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { createBook } from '../features/book/api/bookService';
@@ -15,9 +15,13 @@ const { Option } = Select;
 const AddBookPage = () => {
     const [form] = Form.useForm();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
     const [imageFile, setImageFile] = useState(null);
+    
+    // Kiểm tra xem có đến từ admin dashboard không
+    const fromAdmin = location.state?.fromAdmin || false;
 
     useEffect(() => {
         loadCategories();
@@ -52,7 +56,8 @@ const AddBookPage = () => {
 
             await createBook(bookData, imageFile);
             message.success('Thêm sách thành công!');
-            navigate('/books');
+            // Nếu đến từ admin, quay về trang admin/books, ngược lại quay về trang công khai
+            navigate(fromAdmin ? '/admin/books' : '/books');
         } catch (error) {
             console.error('Error creating book:', error);
             const errorMsg = error.response?.data?.message || 'Thêm sách thất bại';
@@ -202,7 +207,7 @@ const AddBookPage = () => {
                     <Form.Item>
                         <Button
                             type="default"
-                            onClick={() => navigate('/books')}
+                            onClick={() => navigate(fromAdmin ? '/admin/books' : '/books')}
                             className="reset-button"
                             size="large"
                             block

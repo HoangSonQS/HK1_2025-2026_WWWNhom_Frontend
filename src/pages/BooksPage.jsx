@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Input, Select, Button, Spin, Empty, message, Checkbox, Slider, Card } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Input, Select, Button, Spin, Empty, message, Checkbox, Slider, Card, Space } from 'antd';
 import { getAllBooks, searchBooks, filterBooksByCategory } from '../features/book/api/bookService';
 import { getAllCategories } from '../features/category/api/categoryService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
-import { isAdminOrStaff } from '../utils/jwt';
 import '../styles/books.css';
 
 const { Content } = Layout;
@@ -25,14 +23,19 @@ const BooksPage = () => {
     const [isPriceCheckboxActive, setIsPriceCheckboxActive] = useState(false); // Track xem có đang lọc theo checkbox giá không
     const [sortBy, setSortBy] = useState(null);
     const [sortOrder, setSortOrder] = useState('asc');
-    const [isAdminStaff, setIsAdminStaff] = useState(false);
 
+    // Load dữ liệu ban đầu
     useEffect(() => {
         loadBooks();
         loadCategories();
-        setIsAdminStaff(isAdminOrStaff());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Xử lý query parameters từ URL (chạy lại khi searchParams thay đổi)
+    useEffect(() => {
+        // Chờ dữ liệu sách được load xong
+        if (allBooks.length === 0) return;
         
-        // Đọc query parameters từ URL
         const searchParam = searchParams.get('search');
         const categoryParam = searchParams.get('category');
         
@@ -40,11 +43,16 @@ const BooksPage = () => {
             // Nếu có search param, tìm kiếm và lọc
             handleSearch(searchParam);
         } else if (categoryParam) {
-            setSelectedCategories([parseInt(categoryParam)]);
-            handleCategoryFilter([parseInt(categoryParam)]);
+            const categoryId = parseInt(categoryParam);
+            setSelectedCategories([categoryId]);
+            applyFilters({ categoryIds: [categoryId] });
+        } else {
+            // Nếu không có param nào, hiển thị toàn bộ sách
+            setSelectedCategories([]);
+            applyFilters({ categoryIds: [] });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [searchParams, allBooks]);
 
     const loadBooks = async () => {
         setLoading(true);
@@ -112,36 +120,49 @@ const BooksPage = () => {
 
     const handleCategoryFilter = async (categoryIds) => {
         setSelectedCategories(categoryIds);
-        // Gọi applyFilters để lọc theo cả thể loại và giá
-        setTimeout(() => applyFilters(), 100);
+        // Gọi applyFilters với categoryIds mới để tránh vấn đề state chưa cập nhật
+        applyFilters({ categoryIds });
     };
 
-    const applyPriceFilter = (booksToFilter) => {
+    const applyPriceFilter = (
+        booksToFilter,
+        priceRangeToUse = priceRange,
+        priceActive = isPriceCheckboxActive
+    ) => {
         // Chỉ lọc theo giá nếu đang active checkbox giá hoặc slider đã được điều chỉnh khác mặc định
-        if (!isPriceCheckboxActive && priceRange[0] === 0 && priceRange[1] === maxPrice) {
+        if (!priceActive && priceRangeToUse[0] === 0 && priceRangeToUse[1] === maxPrice) {
             return booksToFilter; // Không lọc, trả về toàn bộ
         }
         return booksToFilter.filter(book => 
-            book.price >= priceRange[0] && book.price <= priceRange[1]
+            book.price >= priceRangeToUse[0] && book.price <= priceRangeToUse[1]
         );
     };
 
-    const applyFilters = () => {
+    const applyFilters = ({
+        categoryIds: categoryIdsToUse = null,
+        priceRange: priceRangeOverride = null,
+        priceActive: priceActiveOverride = null
+    } = {}) => {
         let filteredBooks = allBooks;
         
+        // Sử dụng categoryIds được truyền vào hoặc state hiện tại
+        const categoriesToFilter = categoryIdsToUse !== null ? categoryIdsToUse : selectedCategories;
+        const priceRangeToUse = priceRangeOverride || priceRange;
+        const priceActiveToUse = priceActiveOverride !== null ? priceActiveOverride : isPriceCheckboxActive;
+        
         // Lọc theo thể loại
-        if (selectedCategories.length > 0) {
+        if (categoriesToFilter.length > 0) {
             filteredBooks = filteredBooks.filter(book => {
                 if (!book.categoryIds) return false;
                 const bookCategoryIds = Array.isArray(book.categoryIds) 
                     ? book.categoryIds 
                     : Array.from(book.categoryIds || []);
-                return selectedCategories.some(catId => bookCategoryIds.includes(catId));
+                return categoriesToFilter.some(catId => bookCategoryIds.includes(catId));
             });
         }
         
         // Lọc theo giá
-        filteredBooks = applyPriceFilter(filteredBooks);
+        filteredBooks = applyPriceFilter(filteredBooks, priceRangeToUse, priceActiveToUse);
         
         // Sắp xếp
         if (sortBy) {
@@ -174,7 +195,7 @@ const BooksPage = () => {
     const handlePriceRangeAfterChange = (value) => {
         setPriceRange(value);
         setIsPriceCheckboxActive(false);
-        applyFilters();
+        applyFilters({ priceRange: value, priceActive: false });
     };
 
     const handleSort = (field, order) => {
@@ -198,10 +219,6 @@ const BooksPage = () => {
         setBooks(sortedBooks);
     };
 
-    const handleBookDelete = (bookId) => {
-        setBooks(books.filter(book => book.id !== bookId));
-        setAllBooks(allBooks.filter(book => book.id !== bookId));
-    };
 
     const getCategoryBookCount = (categoryId) => {
         return allBooks.filter(book => {
@@ -232,20 +249,6 @@ const BooksPage = () => {
             <Header />
             <Content>
                 <div className="books-page-container">
-                    {isAdminStaff && (
-                        <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'flex-end' }}>
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                size="large"
-                                className="login-button"
-                                onClick={() => navigate('/books/add')}
-                            >
-                                Thêm sách mới
-                            </Button>
-                        </div>
-                    )}
-
                     <Row gutter={24}>
                         {/* Filter Sidebar */}
                         <Col xs={24} sm={24} md={6} lg={5}>
@@ -307,18 +310,19 @@ const BooksPage = () => {
                                                                 // Chọn checkbox -> lọc theo khoảng giá này
                                                                 setIsPriceCheckboxActive(true);
                                                                 setPriceRange(priceOption.range);
-                                                                // Gọi applyFilters ngay lập tức
-                                                                setTimeout(() => {
-                                                                    applyFilters();
-                                                                }, 50);
+                                                                applyFilters({
+                                                                    priceRange: priceOption.range,
+                                                                    priceActive: true
+                                                                });
                                                             } else {
                                                                 // Bỏ chọn -> hiển thị toàn bộ sách (không lọc theo giá)
                                                                 setIsPriceCheckboxActive(false);
-                                                                setPriceRange([0, maxPrice]);
-                                                                // Gọi applyFilters ngay lập tức
-                                                                setTimeout(() => {
-                                                                    applyFilters();
-                                                                }, 50);
+                                                                const resetRange = [0, maxPrice];
+                                                                setPriceRange(resetRange);
+                                                                applyFilters({
+                                                                    priceRange: resetRange,
+                                                                    priceActive: false
+                                                                });
                                                             }
                                                         }}
                                                     >
@@ -333,41 +337,51 @@ const BooksPage = () => {
                                             Hoặc chọn mức giá phù hợp
                                         </p>
                                         <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-                                            <Input
-                                                type="text"
-                                                placeholder="0"
-                                                value={formatPrice(priceRange[0])}
-                                                onChange={(e) => {
-                                                    const val = e.target.value.replace(/[^\d]/g, '');
-                                                    const numVal = parseInt(val) || 0;
-                                                    const finalVal = Math.max(0, Math.min(maxPrice, numVal));
-                                                    if (finalVal <= priceRange[1]) {
-                                                        setIsPriceCheckboxActive(false); // Bỏ active checkbox khi nhập tay
-                                                        setPriceRange([finalVal, priceRange[1]]);
-                                                    }
-                                                }}
-                                                onBlur={applyFilters}
-                                                style={{ width: '140px' }}
-                                                addonAfter="đ"
-                                            />
+                                            <Space.Compact style={{ width: '170px' }}>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="0"
+                                                    value={formatPrice(priceRange[0])}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^\d]/g, '');
+                                                        const numVal = parseInt(val) || 0;
+                                                        const finalVal = Math.max(0, Math.min(maxPrice, numVal));
+                                                        if (finalVal <= priceRange[1]) {
+                                                            setIsPriceCheckboxActive(false); // Bỏ active checkbox khi nhập tay
+                                                            setPriceRange([finalVal, priceRange[1]]);
+                                                        }
+                                                    }}
+                                                    onBlur={applyFilters}
+                                                />
+                                                <Input
+                                                    style={{ width: '30px', textAlign: 'center', pointerEvents: 'none', backgroundColor: '#f5f5f5', borderLeft: 'none' }}
+                                                    value="đ"
+                                                    readOnly
+                                                />
+                                            </Space.Compact>
                                             <span style={{ margin: '0 4px' }}>-</span>
-                                            <Input
-                                                type="text"
-                                                placeholder="0"
-                                                value={formatPrice(priceRange[1])}
-                                                onChange={(e) => {
-                                                    const val = e.target.value.replace(/[^\d]/g, '');
-                                                    const numVal = parseInt(val) || maxPrice;
-                                                    const finalVal = Math.max(0, Math.min(maxPrice, numVal));
-                                                    if (finalVal >= priceRange[0]) {
-                                                        setIsPriceCheckboxActive(false); // Bỏ active checkbox khi nhập tay
-                                                        setPriceRange([priceRange[0], finalVal]);
-                                                    }
-                                                }}
-                                                onBlur={applyFilters}
-                                                style={{ width: '140px' }}
-                                                addonAfter="đ"
-                                            />
+                                            <Space.Compact style={{ width: '170px' }}>
+                                                <Input
+                                                    type="text"
+                                                    placeholder="0"
+                                                    value={formatPrice(priceRange[1])}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[^\d]/g, '');
+                                                        const numVal = parseInt(val) || maxPrice;
+                                                        const finalVal = Math.max(0, Math.min(maxPrice, numVal));
+                                                        if (finalVal >= priceRange[0]) {
+                                                            setIsPriceCheckboxActive(false); // Bỏ active checkbox khi nhập tay
+                                                            setPriceRange([priceRange[0], finalVal]);
+                                                        }
+                                                    }}
+                                                    onBlur={applyFilters}
+                                                />
+                                                <Input
+                                                    style={{ width: '30px', textAlign: 'center', pointerEvents: 'none', backgroundColor: '#f5f5f5', borderLeft: 'none' }}
+                                                    value="đ"
+                                                    readOnly
+                                                />
+                                            </Space.Compact>
                                         </div>
                                         <div className="price-slider-wrapper">
                                             <Slider
@@ -376,7 +390,7 @@ const BooksPage = () => {
                                                 max={maxPrice}
                                                 value={priceRange}
                                                 onChange={handlePriceRangeChange}
-                                                onAfterChange={handlePriceRangeAfterChange}
+                                                onChangeComplete={handlePriceRangeAfterChange}
                                                 step={50000}
                                                 tooltip={{
                                                     formatter: (value) => `${formatPrice(value)} đ`
@@ -439,8 +453,6 @@ const BooksPage = () => {
                                                 <Col xs={24} sm={12} md={8} lg={6} key={book.id}>
                                                     <BookCard
                                                         book={book}
-                                                        onDelete={handleBookDelete}
-                                                        isAdminOrStaff={isAdminStaff}
                                                     />
                                                 </Col>
                                             ))}

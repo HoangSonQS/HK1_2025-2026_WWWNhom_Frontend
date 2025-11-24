@@ -10,6 +10,8 @@ export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localho
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/auth/login',
+  ADMIN_LOGIN: '/admin/login',
+  ADMIN_DASHBOARD: '/admin/dashboard',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/password/forgot',
   RESET_PASSWORD: '/password/reset',

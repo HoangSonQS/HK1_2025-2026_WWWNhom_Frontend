@@ -108,7 +108,7 @@ const Login = () => {
                     name="login"
                     className="login-form-modern"
                     initialValues={{
-                        remember: true,
+                        remember: false,
                     }}
                     onFinish={onFinish}
                     autoComplete="off"

@@ -5,7 +5,14 @@ import Register from '../features/user/components/Register';
 import ForgotPassword from '../features/user/components/ForgotPassword';
 import ResetPassword from '../features/user/components/ResetPassword';
 import ChangePassword from '../features/user/components/ChangePassword';
+import UpdateAccount from '../features/user/components/UpdateAccount';
 import Home from '../pages/Home';
+import BooksPage from '../pages/BooksPage';
+import BookDetailPage from '../pages/BookDetailPage';
+import AddBookPage from '../pages/AddBookPage';
+import EditBookPage from '../pages/EditBookPage';
+import CategoriesPage from '../pages/CategoriesPage';
+import AddCategoryPage from '../pages/AddCategoryPage';
 import AdminDashboard from '../pages/AdminDashboard';
 import { ROUTES } from '../utils/constants';
 
@@ -21,8 +28,21 @@ const AppRoutes = () => {
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
       <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
       
+      {/* Books routes - Public */}
+      <Route path="/books" element={<BooksPage />} />
+      <Route path="/books/:id" element={<BookDetailPage />} />
+      
       {/* Protected routes */}
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
+      <Route path={ROUTES.UPDATE_ACCOUNT} element={<UpdateAccount />} />
+      
+      {/* Admin/Staff routes - Books */}
+      <Route path="/books/add" element={<AddBookPage />} />
+      <Route path="/books/:id/edit" element={<EditBookPage />} />
+      
+      {/* Admin/Staff routes - Categories */}
+      <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/categories/add" element={<AddCategoryPage />} />
       
       {/* Default route */}
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

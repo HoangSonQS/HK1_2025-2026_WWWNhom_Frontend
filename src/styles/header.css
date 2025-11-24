@@ -1,0 +1,134 @@
+/* Header Styles */
+
+.app-header {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    gap: 16px;
+}
+
+.header-logo {
+    flex: 0 0 auto;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ff6b35;
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+.header-logo a {
+    text-decoration: none;
+}
+
+.header-menu {
+    flex: 1;
+    min-width: 0;
+    border-bottom: none;
+    background: transparent;
+    justify-content: center;
+    margin: 0;
+}
+
+.header-menu .ant-menu-item {
+    margin: 0 8px;
+}
+
+.header-menu .ant-menu-item a {
+    color: #333;
+    font-weight: 500;
+}
+
+.header-menu .ant-menu-item:hover a,
+.header-menu .ant-menu-item-selected a {
+    color: #ff6b35;
+}
+
+.header-search {
+    flex: 0 0 auto;
+    min-width: 300px;
+    max-width: 400px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.header-search .ant-input-search {
+    width: 100%;
+}
+
+.header-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+}
+
+.user-info {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.user-info:hover {
+    background: #f5f5f5;
+}
+
+.user-info span {
+    font-weight: 500;
+    color: #333;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .header-search {
+        min-width: 250px;
+        max-width: 300px;
+        margin: 0 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        padding: 0 16px;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 64px;
+    }
+
+    .header-menu {
+        display: none;
+    }
+
+    .header-search {
+        order: 3;
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        margin: 8px 0 0 0;
+        padding: 0;
+    }
+
+    .logo-text {
+        font-size: 20px;
+    }
+
+    .header-actions {
+        margin-left: auto;
+    }
+}
+

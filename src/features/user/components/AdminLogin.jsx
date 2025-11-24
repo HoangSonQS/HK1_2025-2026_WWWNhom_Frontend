@@ -36,8 +36,15 @@ const AdminLogin = () => {
                 
                 // Kiểm tra role sau khi login
                 const jwtData = decodeJWT(accessToken);
-                if (!checkAdminRole()) {
+                console.log('🔍 Decoded JWT Data:', jwtData);
+                console.log('🔍 JWT Scope:', jwtData?.scope, 'Type:', typeof jwtData?.scope);
+                
+                const isAdmin = checkAdminRole();
+                console.log('🔍 Is Admin:', isAdmin);
+                
+                if (!isAdmin) {
                     const errorMsg = 'Truy cập bị từ chối. Trang này chỉ dành cho quản trị viên.';
+                    console.error('❌ Admin check failed. JWT data:', jwtData);
                     setErrorMessage(errorMsg);
                     message.error(errorMsg);
                     localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);

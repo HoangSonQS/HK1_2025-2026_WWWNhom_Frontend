@@ -25,26 +25,76 @@ export const decodeJWT = (token = null) => {
 
 export const checkAdminRole = () => {
   const decoded = decodeJWT();
-  if (!decoded || !decoded.scope) return false;
-  return decoded.scope.includes("ADMIN");
+  if (!decoded) {
+    console.error('❌ Cannot decode JWT token');
+    return false;
+  }
+  
+  if (!decoded.scope) {
+    console.error('❌ No scope found in JWT:', decoded);
+    return false;
+  }
+  
+  // Xử lý scope có thể là string hoặc array
+  let scopeString = '';
+  if (typeof decoded.scope === 'string') {
+    scopeString = decoded.scope;
+  } else if (Array.isArray(decoded.scope)) {
+    scopeString = decoded.scope.join(' ');
+  } else {
+    console.error('❌ Invalid scope format:', decoded.scope, typeof decoded.scope);
+    return false;
+  }
+  
+  // Kiểm tra case-insensitive để xử lý cả "admin" và "ADMIN"
+  const hasAdmin = scopeString.toUpperCase().includes("ADMIN");
+  console.log('🔍 Check Admin Role - Scope:', scopeString, 'Has ADMIN:', hasAdmin);
+  return hasAdmin;
 };
 
 export const checkSellerStaffRole = () => {
   const decoded = decodeJWT();
   if (!decoded || !decoded.scope) return false;
-  return decoded.scope.includes("SELLER_STAFF");
+  
+  // Xử lý scope có thể là string hoặc array
+  const scopeString = typeof decoded.scope === 'string' 
+    ? decoded.scope 
+    : Array.isArray(decoded.scope) 
+      ? decoded.scope.join(' ') 
+      : '';
+  
+  // Kiểm tra case-insensitive
+  return scopeString.toUpperCase().includes("SELLER_STAFF");
 };
 
 export const checkWarehouseStaffRole = () => {
   const decoded = decodeJWT();
   if (!decoded || !decoded.scope) return false;
-  return decoded.scope.includes("WAREHOUSE_STAFF");
+  
+  // Xử lý scope có thể là string hoặc array
+  const scopeString = typeof decoded.scope === 'string' 
+    ? decoded.scope 
+    : Array.isArray(decoded.scope) 
+      ? decoded.scope.join(' ') 
+      : '';
+  
+  // Kiểm tra case-insensitive
+  return scopeString.toUpperCase().includes("WAREHOUSE_STAFF");
 };
 
 export const checkCustomerRole = () => {
   const decoded = decodeJWT();
   if (!decoded || !decoded.scope) return false;
-  return decoded.scope.includes("CUSTOMER");
+  
+  // Xử lý scope có thể là string hoặc array
+  const scopeString = typeof decoded.scope === 'string' 
+    ? decoded.scope 
+    : Array.isArray(decoded.scope) 
+      ? decoded.scope.join(' ') 
+      : '';
+  
+  // Kiểm tra case-insensitive
+  return scopeString.toUpperCase().includes("CUSTOMER");
 };
 
 export const decodeToken = (token) => {
@@ -54,6 +104,16 @@ export const decodeToken = (token) => {
 export const isAdminOrStaff = () => {
   const decoded = decodeJWT();
   if (!decoded || !decoded.scope) return false;
-  return decoded.scope.includes("ADMIN") || decoded.scope.includes("SELLER_STAFF");
+  
+  // Xử lý scope có thể là string hoặc array
+  const scopeString = typeof decoded.scope === 'string' 
+    ? decoded.scope 
+    : Array.isArray(decoded.scope) 
+      ? decoded.scope.join(' ') 
+      : '';
+  
+  // Kiểm tra case-insensitive
+  const upperScope = scopeString.toUpperCase();
+  return upperScope.includes("ADMIN") || upperScope.includes("SELLER_STAFF");
 };
 

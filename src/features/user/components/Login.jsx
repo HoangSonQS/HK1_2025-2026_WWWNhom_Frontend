@@ -5,7 +5,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import '../../../styles/auth.css';
 import { login } from '../api/authService';
 import { ROUTES, STORAGE_KEYS } from '../../../utils/constants';
-import { decodeJWT, checkAdminRole, checkSellerStaffRole, checkWarehouseStaffRole, checkCustomerRole } from '../../../utils/jwt';
+import { decodeJWT, checkSellerStaffRole, checkWarehouseStaffRole, checkCustomerRole } from '../../../utils/jwt';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -35,20 +35,9 @@ const Login = () => {
                     localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.data.refreshToken);
                 }
                 
-                // Kiểm tra role sau khi login
+                // Giải mã JWT để xác định role hiện tại
                 const jwtData = decodeJWT(accessToken);
-                
-                // Nếu là admin, yêu cầu đăng nhập qua trang admin
-                if (checkAdminRole()) {
-                    const errorMsg = 'Quản trị viên vui lòng đăng nhập qua trang Admin Login.';
-                    setErrorMessage(errorMsg);
-                    message.error(errorMsg);
-                    localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
-                    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-                    setLoading(false);
-                    return;
-                }
-                
+                                
                 message.success('Đăng nhập thành công!');
                 
                 // Điều hướng dựa trên role
@@ -57,6 +46,9 @@ const Login = () => {
                     navigate('/staff/dashboard'); // Hoặc route staff tương ứng
                 } else if (checkCustomerRole()) {
                     // Customer điều hướng đến trang chủ
+                    navigate(ROUTES.HOME);
+                } else if (jwtData && jwtData.scope?.includes('ADMIN')) {
+                    // Admin đăng nhập qua luồng user -> điều hướng về trang chủ để xem chức năng chung
                     navigate(ROUTES.HOME);
                 } else {
                     // Mặc định điều hướng đến trang chủ

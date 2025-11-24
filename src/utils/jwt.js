@@ -47,3 +47,13 @@ export const checkCustomerRole = () => {
   return decoded.scope.includes("CUSTOMER");
 };
 
+export const decodeToken = (token) => {
+  return decodeJWT(token);
+};
+
+export const isAdminOrStaff = () => {
+  const decoded = decodeJWT();
+  if (!decoded || !decoded.scope) return false;
+  return decoded.scope.includes("ADMIN") || decoded.scope.includes("SELLER_STAFF");
+};
+

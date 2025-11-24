@@ -14,6 +14,13 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/password/forgot',
   RESET_PASSWORD: '/password/reset',
   CHANGE_PASSWORD: '/profile/change-password',
+  UPDATE_ACCOUNT: '/profile/update-account',
+  BOOKS: '/books',
+  BOOK_DETAIL: '/books/:id',
+  BOOK_ADD: '/books/add',
+  BOOK_EDIT: '/books/:id/edit',
+  CATEGORIES: '/categories',
+  CATEGORY_ADD: '/categories/add',
 };
 
 export const STORAGE_KEYS = {

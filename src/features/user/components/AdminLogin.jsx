@@ -1,13 +1,13 @@
 import React from 'react';
-import { Button, Checkbox, Form, Input, message, Alert } from 'antd';
+import { Button, Form, Input, message, Alert } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import '../../../styles/auth.css';
 import { login } from '../api/authService';
 import { ROUTES, STORAGE_KEYS } from '../../../utils/constants';
-import { decodeJWT, checkAdminRole, checkSellerStaffRole, checkWarehouseStaffRole, checkCustomerRole } from '../../../utils/jwt';
+import { decodeJWT, checkAdminRole } from '../../../utils/jwt';
 
-const Login = () => {
+const AdminLogin = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [loading, setLoading] = React.useState(false);
@@ -15,19 +15,18 @@ const Login = () => {
     
     const onFinish = async (values) => {
         setLoading(true);
-        setErrorMessage(''); // Xóa error message cũ
+        setErrorMessage('');
         
         try {
             const loginData = {
-                username: values.username || values.email, // Hỗ trợ cả username và email
+                username: values.username || values.email,
                 password: values.password
             };
             
-            console.log('🚀 Calling login API with data:', { username: loginData.username, password: '***' });
+            console.log('🚀 Admin login API call:', { username: loginData.username, password: '***' });
             const response = await login(loginData);
-            console.log('✅ Login API response:', response.data);
+            console.log('✅ Admin login API response:', response.data);
             
-            // Backend trả về token, không phải accessToken
             if (response.data && (response.data.token || response.data.accessToken)) {
                 const accessToken = response.data.token || response.data.accessToken;
                 localStorage.setItem(STORAGE_KEYS.JWT_TOKEN, accessToken);
@@ -37,10 +36,8 @@ const Login = () => {
                 
                 // Kiểm tra role sau khi login
                 const jwtData = decodeJWT(accessToken);
-                
-                // Nếu là admin, yêu cầu đăng nhập qua trang admin
-                if (checkAdminRole()) {
-                    const errorMsg = 'Quản trị viên vui lòng đăng nhập qua trang Admin Login.';
+                if (!checkAdminRole()) {
+                    const errorMsg = 'Truy cập bị từ chối. Trang này chỉ dành cho quản trị viên.';
                     setErrorMessage(errorMsg);
                     message.error(errorMsg);
                     localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
@@ -50,46 +47,27 @@ const Login = () => {
                 }
                 
                 message.success('Đăng nhập thành công!');
-                
-                // Điều hướng dựa trên role
-                if (checkSellerStaffRole() || checkWarehouseStaffRole()) {
-                    // Staff điều hướng đến dashboard (sẽ tạo sau)
-                    navigate('/staff/dashboard'); // Hoặc route staff tương ứng
-                } else if (checkCustomerRole()) {
-                    // Customer điều hướng đến trang chủ
-                    navigate(ROUTES.HOME);
-                } else {
-                    // Mặc định điều hướng đến trang chủ
-                    navigate(ROUTES.HOME);
-                }
+                navigate(ROUTES.ADMIN_DASHBOARD);
             } else {
                 const errorMsg = 'Tên đăng nhập hoặc mật khẩu không đúng!';
                 setErrorMessage(errorMsg);
                 message.error(errorMsg);
             }
         } catch (error) {
-            console.error('❌ Login error:', error);
+            console.error('❌ Admin login error:', error);
             let errorMsg = '';
             
             if (error.response && error.response.data) {
-                // Backend trả về ErrorResponse với field 'message'
                 errorMsg = error.response.data.message || 
                           error.response.data.error || 
                           'Tên đăng nhập hoặc mật khẩu không đúng';
-                console.error('Error message from backend:', errorMsg);
             } else if (error.request) {
-                // Request đã được gửi nhưng không nhận được response
-                console.error('No response received:', error.request);
                 errorMsg = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.';
             } else {
-                // Lỗi khi setup request
-                console.error('Error setting up request:', error.message);
                 errorMsg = 'Đăng nhập thất bại. Vui lòng thử lại.';
             }
             
-            // Hiển thị error message trên form
             setErrorMessage(errorMsg);
-            // Vẫn hiển thị message notification
             message.error(errorMsg);
         } finally {
             setLoading(false);
@@ -100,12 +78,15 @@ const Login = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">LOGIN</h1>
+                    <h1 className="login-title">ADMIN LOGIN</h1>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+                        Đăng nhập dành cho quản trị viên
+                    </p>
                 </div>
                 
                 <Form
                     form={form}
-                    name="login"
+                    name="admin-login"
                     className="login-form-modern"
                     initialValues={{
                         remember: true,
@@ -114,7 +95,6 @@ const Login = () => {
                     autoComplete="off"
                     layout="vertical"
                 >
-                    {/* Hiển thị error message trên form */}
                     {errorMessage && (
                         <Form.Item>
                             <Alert
@@ -163,9 +143,6 @@ const Login = () => {
                     </Form.Item>
 
                     <div className="login-form-options">
-                        <Form.Item name="remember" valuePropName="checked" noStyle>
-                            <Checkbox>Remember me</Checkbox>
-                        </Form.Item>
                         <Link to={ROUTES.FORGOT_PASSWORD} className="forgot-password-link">
                             Forgot your password?
                         </Link>
@@ -180,21 +157,14 @@ const Login = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đăng nhập...' : 'LOGIN'}
+                            {loading ? 'Đang đăng nhập...' : 'ADMIN LOGIN'}
                         </Button>
                     </Form.Item>
 
                     <div className="register-link-container">
-                        <span>Don't have an account? </span>
-                        <Link to={ROUTES.REGISTER} className="register-link">
-                            Register
-                        </Link>
-                    </div>
-                    
-                    <div className="register-link-container" style={{ marginTop: '12px' }}>
-                        <span>Bạn là quản trị viên? </span>
-                        <Link to={ROUTES.ADMIN_LOGIN} className="register-link">
-                            Đăng nhập Admin
+                        <span>Bạn là khách hàng hoặc nhân viên? </span>
+                        <Link to={ROUTES.LOGIN} className="register-link">
+                            Đăng nhập tại đây
                         </Link>
                     </div>
                 </Form>
@@ -203,4 +173,5 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default AdminLogin;
+

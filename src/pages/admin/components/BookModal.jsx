@@ -1,40 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Form, Input, InputNumber, Button, Upload, message, Select, Spin } from 'antd';
+import { Modal, Form, Input, InputNumber, Upload, Select, Button, message, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { getBookById, updateBook } from '../features/book/api/bookService';
-import { getAllCategories } from '../features/category/api/categoryService';
-import { getImageUrl } from '../utils/imageUtils';
-import Header from '../components/Header';
-import '../styles/auth.css';
-
-const { Content } = Layout;
+import { createBook, getBookById, updateBook } from '../../../features/book/api/bookService';
+import { getAllCategories } from '../../../features/category/api/categoryService';
+import { getImageUrl } from '../../../utils/imageUtils';
 
 const { Option } = Select;
 
-const EditBookPage = () => {
-    const { id } = useParams();
+const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
     const [form] = Form.useForm();
-    const navigate = useNavigate();
-    const location = useLocation();
     const [loading, setLoading] = useState(false);
-    const [loadingBook, setLoadingBook] = useState(true);
+    const [loadingBook, setLoadingBook] = useState(false);
     const [categories, setCategories] = useState([]);
     const [imageFile, setImageFile] = useState(null);
     const [currentImageUrl, setCurrentImageUrl] = useState('');
-    
-    // Kiểm tra xem có đến từ admin dashboard không
-    const fromAdmin = location.state?.fromAdmin || false;
+
+    const isEditMode = !!bookId;
 
     useEffect(() => {
-        loadBook();
-        loadCategories();
-    }, [id]);
+        if (open) {
+            loadCategories();
+            if (isEditMode) {
+                loadBook();
+            } else {
+                form.resetFields();
+                setImageFile(null);
+                setCurrentImageUrl('');
+            }
+        }
+    }, [open, bookId]);
+
+    const loadCategories = async () => {
+        try {
+            const response = await getAllCategories();
+            setCategories(response.data || []);
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            message.error('Không thể tải danh sách thể loại');
+        }
+    };
 
     const loadBook = async () => {
         setLoadingBook(true);
         try {
-            const response = await getBookById(id);
+            const response = await getBookById(bookId);
             const book = response.data;
             setCurrentImageUrl(book.imageUrl || '');
             
@@ -53,15 +62,6 @@ const EditBookPage = () => {
         }
     };
 
-    const loadCategories = async () => {
-        try {
-            const response = await getAllCategories();
-            setCategories(response.data || []);
-        } catch (error) {
-            console.error('Error loading categories:', error);
-        }
-    };
-
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
@@ -73,13 +73,29 @@ const EditBookPage = () => {
                 categoryIds: values.categoryIds || []
             };
 
-            await updateBook(id, bookData, imageFile);
-            message.success('Cập nhật sách thành công!');
-            // Nếu đến từ admin, quay về trang admin/books, ngược lại quay về trang công khai
-            navigate(fromAdmin ? '/admin/books' : '/books');
+            let updatedBook = null;
+            if (isEditMode) {
+                const response = await updateBook(bookId, bookData, imageFile);
+                updatedBook = response.data;
+                message.success('Cập nhật sách thành công!');
+            } else {
+                if (!imageFile) {
+                    message.error('Vui lòng chọn ảnh cho sách');
+                    setLoading(false);
+                    return;
+                }
+                const response = await createBook(bookData, imageFile);
+                updatedBook = response.data;
+                message.success('Thêm sách thành công!');
+            }
+            
+            form.resetFields();
+            setImageFile(null);
+            setCurrentImageUrl('');
+            onSuccess(updatedBook);
         } catch (error) {
-            console.error('Error updating book:', error);
-            const errorMsg = error.response?.data?.message || 'Cập nhật sách thất bại';
+            console.error(`Error ${isEditMode ? 'updating' : 'creating'} book:`, error);
+            const errorMsg = error.response?.data?.message || `${isEditMode ? 'Cập nhật' : 'Thêm'} sách thất bại`;
             message.error(errorMsg);
         } finally {
             setLoading(false);
@@ -107,42 +123,40 @@ const EditBookPage = () => {
         return false;
     };
 
-    if (loadingBook) {
-        return (
-            <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-                <Header />
-                <Content>
-                    <div className="login-page-container">
-                        <Spin size="large" />
-                    </div>
-                </Content>
-            </Layout>
-        );
-    }
+    const handleCancel = () => {
+        form.resetFields();
+        setImageFile(null);
+        setCurrentImageUrl('');
+        onCancel();
+    };
 
     return (
-        <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-            <Header />
-            <Content>
-                <div className="login-page-container">
-                    <div className="login-form-wrapper" style={{ maxWidth: '800px' }}>
-                <div className="login-form-header">
-                    <h1 className="login-title">CẬP NHẬT SÁCH</h1>
+        <Modal
+            title={isEditMode ? 'Cập nhật sách' : 'Thêm sách mới'}
+            open={open}
+            onCancel={handleCancel}
+            footer={null}
+            width={800}
+            destroyOnClose
+        >
+            {loadingBook ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <Spin size="large" />
                 </div>
-
+            ) : (
                 <Form
                     form={form}
-                    name="editBook"
-                    className="login-form-modern"
+                    name="bookForm"
                     onFinish={handleSubmit}
                     layout="vertical"
+                    autoComplete="off"
                 >
                     <Form.Item
                         name="title"
                         label="Tên sách"
                         rules={[{ required: true, message: 'Vui lòng nhập tên sách!' }]}
                     >
-                        <Input size="large" className="login-input" placeholder="Tên sách" />
+                        <Input size="large" placeholder="Tên sách" />
                     </Form.Item>
 
                     <Form.Item
@@ -150,7 +164,7 @@ const EditBookPage = () => {
                         label="Tác giả"
                         rules={[{ required: true, message: 'Vui lòng nhập tác giả!' }]}
                     >
-                        <Input size="large" className="login-input" placeholder="Tác giả" />
+                        <Input size="large" placeholder="Tác giả" />
                     </Form.Item>
 
                     <Form.Item
@@ -167,7 +181,6 @@ const EditBookPage = () => {
                             formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                             parser={value => value.replace(/\$\s?|(,*)/g, '')}
                             placeholder="Giá"
-                            className="login-input"
                         />
                     </Form.Item>
 
@@ -183,7 +196,6 @@ const EditBookPage = () => {
                             size="large"
                             style={{ width: '100%' }}
                             placeholder="Số lượng"
-                            className="login-input"
                         />
                     </Form.Item>
 
@@ -196,7 +208,6 @@ const EditBookPage = () => {
                             mode="multiple"
                             size="large"
                             placeholder="Chọn thể loại"
-                            className="login-input"
                         >
                             {categories.map(category => (
                                 <Option key={category.id} value={category.id}>
@@ -209,13 +220,14 @@ const EditBookPage = () => {
                     <Form.Item
                         name="image"
                         label="Ảnh sách"
+                        rules={!isEditMode ? [{ required: true, message: 'Vui lòng chọn ảnh cho sách!' }] : []}
                     >
                         {currentImageUrl && (
                             <div style={{ marginBottom: 16 }}>
                                 <img 
                                     src={getImageUrl(currentImageUrl)} 
                                     alt="Current" 
-                                    style={{ maxWidth: '200px', maxHeight: '200px' }}
+                                    style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }}
                                     onError={(e) => {
                                         e.target.src = '/placeholder-book.jpg';
                                     }}
@@ -229,42 +241,31 @@ const EditBookPage = () => {
                             listType="picture"
                         >
                             <Button icon={<UploadOutlined />} size="large" block>
-                                {imageFile ? 'Thay đổi ảnh' : 'Chọn ảnh mới (tùy chọn)'}
+                                {imageFile ? 'Thay đổi ảnh' : (isEditMode ? 'Chọn ảnh mới (tùy chọn)' : 'Chọn ảnh')}
                             </Button>
                         </Upload>
                     </Form.Item>
 
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            className="login-button"
-                            size="large"
-                            block
-                            loading={loading}
-                        >
-                            {loading ? 'Đang cập nhật...' : 'CẬP NHẬT'}
-                        </Button>
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button
-                            type="default"
-                            onClick={() => navigate(fromAdmin ? '/admin/books' : '/books')}
-                            className="reset-button"
-                            size="large"
-                            block
-                        >
-                            HỦY
-                        </Button>
+                    <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <Button onClick={handleCancel} size="large">
+                                Hủy
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                size="large"
+                                loading={loading}
+                            >
+                                {loading ? (isEditMode ? 'Đang cập nhật...' : 'Đang thêm...') : (isEditMode ? 'Cập nhật' : 'Thêm')}
+                            </Button>
+                        </div>
                     </Form.Item>
                 </Form>
-                    </div>
-                </div>
-            </Content>
-        </Layout>
+            )}
+        </Modal>
     );
 };
 
-export default EditBookPage;
+export default BookModal;
 

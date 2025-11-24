@@ -1,30 +1,10 @@
 import React from 'react';
-import { Card, Button, Popconfirm, message, Tag } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { deleteBook } from '../features/book/api/bookService';
+import { Card, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils/imageUtils';
 
-const BookCard = ({ book, onDelete, isAdminOrStaff }) => {
+const BookCard = ({ book }) => {
     const navigate = useNavigate();
-
-    const handleDelete = async () => {
-        try {
-            await deleteBook(book.id);
-            message.success('Xóa sách thành công!');
-            if (onDelete) {
-                onDelete(book.id);
-            }
-        } catch (error) {
-            console.error('Error deleting book:', error);
-            const errorMsg = error.response?.data?.message || 'Xóa sách thất bại';
-            message.error(errorMsg);
-        }
-    };
-
-    const handleEdit = () => {
-        navigate(`/books/${book.id}/edit`);
-    };
 
     return (
         <Card
@@ -54,43 +34,6 @@ const BookCard = ({ book, onDelete, isAdminOrStaff }) => {
                         }}
                     />
                 </div>
-            }
-            actions={
-                isAdminOrStaff
-                    ? [
-                        <Button
-                            key="edit"
-                            type="link"
-                            icon={<EditOutlined />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit();
-                            }}
-                        >
-                            Sửa
-                        </Button>,
-                        <Popconfirm
-                            key="delete"
-                            title="Bạn có chắc chắn muốn xóa sách này?"
-                            onConfirm={(e) => {
-                                e?.stopPropagation();
-                                handleDelete();
-                            }}
-                            onCancel={(e) => e?.stopPropagation()}
-                            okText="Xóa"
-                            cancelText="Hủy"
-                        >
-                            <Button
-                                type="link"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                Xóa
-                            </Button>
-                        </Popconfirm>
-                    ]
-                    : []
             }
             onClick={() => navigate(`/books/${book.id}`)}
         >

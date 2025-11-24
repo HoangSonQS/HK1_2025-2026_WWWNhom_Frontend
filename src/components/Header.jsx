@@ -85,12 +85,7 @@ const Header = () => {
             key: 'books',
             icon: <BookOutlined />,
             label: <Link to="/books">Sách</Link>
-        },
-        ...(isAdminStaff ? [{
-            key: 'categories',
-            icon: <BookOutlined />,
-            label: <Link to="/categories">Quản lý thể loại</Link>
-        }] : [])
+        }
     ];
 
     return (

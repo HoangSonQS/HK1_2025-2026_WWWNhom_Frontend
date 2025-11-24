@@ -1,55 +1,135 @@
-import React, { useEffect } from 'react';
-import { Button, Card, Typography } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Card, Typography, message } from 'antd';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import {
+    BookOutlined,
+    FolderOutlined,
+    UserOutlined,
+    DashboardOutlined,
+    LogoutOutlined
+} from '@ant-design/icons';
 import { checkAdminRole } from '../utils/jwt';
 import { ROUTES } from '../utils/constants';
+import { logout } from '../features/user/api/authService';
+import Header from '../components/Header';
+import '../styles/admin.css';
 
-const { Title, Paragraph, Text } = Typography;
+const { Sider, Content } = Layout;
+const { Title } = Typography;
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [collapsed, setCollapsed] = useState(false);
 
     useEffect(() => {
         if (!checkAdminRole()) {
-            navigate(ROUTES.LOGIN, { replace: true });
+            message.error('Bạn không có quyền truy cập trang này');
+            navigate(ROUTES.ADMIN_LOGIN, { replace: true });
         }
     }, [navigate]);
 
-    const handleNavigateHome = () => {
-        navigate(ROUTES.HOME);
+    const handleLogout = async () => {
+        try {
+            await logout();
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('refreshToken');
+            navigate(ROUTES.ADMIN_LOGIN);
+            message.success('Đăng xuất thành công');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
+    const menuItems = [
+        {
+            key: '/admin/dashboard',
+            icon: <DashboardOutlined />,
+            label: 'Dashboard',
+            onClick: () => navigate('/admin/dashboard')
+        },
+        {
+            key: '/admin/books',
+            icon: <BookOutlined />,
+            label: 'Quản lý Sách',
+            onClick: () => navigate('/admin/books')
+        },
+        {
+            key: '/admin/categories',
+            icon: <FolderOutlined />,
+            label: 'Quản lý Thể loại',
+            onClick: () => navigate('/admin/categories')
+        },
+        {
+            key: '/admin/accounts',
+            icon: <UserOutlined />,
+            label: 'Quản lý Tài khoản',
+            onClick: () => navigate('/admin/accounts')
+        },
+        {
+            key: 'logout',
+            icon: <LogoutOutlined />,
+            label: 'Đăng xuất',
+            danger: true,
+            onClick: handleLogout
+        }
+    ];
+
+    const getSelectedKey = () => {
+        const path = location.pathname;
+        if (path === '/admin' || path === '/admin/') return '/admin/dashboard';
+        if (path.startsWith('/admin/books')) return '/admin/books';
+        if (path.startsWith('/admin/categories')) return '/admin/categories';
+        if (path.startsWith('/admin/accounts')) return '/admin/accounts';
+        return '/admin/dashboard';
     };
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                background: '#f5f5f5',
-                padding: 24
-            }}
-        >
-            <Card
-                title={<Title level={3} style={{ margin: 0 }}>SEBook Admin Dashboard</Title>}
-                style={{ maxWidth: 520, width: '100%' }}
-                bordered={false}
-            >
-                <Paragraph>
-                    Đây là trang dashboard tạm thời dành cho quản trị viên. Bạn có thể sử dụng trang này để
-                    kiểm thử luồng đăng nhập và phân quyền trước khi phát triển đầy đủ giao diện quản trị.
-                </Paragraph>
-                <Paragraph>
-                    <Text strong>Trạng thái:</Text> Đã đăng nhập với quyền quản trị viên.
-                </Paragraph>
-                <Button type="primary" onClick={handleNavigateHome}>
-                    Quay về trang chủ
-                </Button>
-            </Card>
-        </div>
+        <Layout style={{ minHeight: '100vh' }}>
+            <Header />
+            <Layout>
+                <Sider
+                    collapsible
+                    collapsed={collapsed}
+                    onCollapse={setCollapsed}
+                    width={250}
+                    style={{
+                        background: '#fff',
+                        boxShadow: '2px 0 8px rgba(0,0,0,0.1)'
+                    }}
+                >
+                    <div style={{ 
+                        padding: '16px', 
+                        textAlign: 'center',
+                        borderBottom: '1px solid #f0f0f0'
+                    }}>
+                        <Title level={4} style={{ margin: 0, color: '#ff6b35' }}>
+                            {collapsed ? 'AD' : 'ADMIN'}
+                        </Title>
+                    </div>
+                    <Menu
+                        mode="inline"
+                        selectedKeys={[getSelectedKey()]}
+                        items={menuItems}
+                        style={{ borderRight: 0, marginTop: 8 }}
+                    />
+                </Sider>
+                <Layout style={{ padding: '24px' }}>
+                    <Content
+                        style={{
+                            background: '#fff',
+                            padding: 24,
+                            margin: 0,
+                            minHeight: 280,
+                            borderRadius: 8
+                        }}
+                    >
+                        <Outlet />
+                    </Content>
+                </Layout>
+            </Layout>
+        </Layout>
     );
 };
 
 export default AdminDashboard;
-
-

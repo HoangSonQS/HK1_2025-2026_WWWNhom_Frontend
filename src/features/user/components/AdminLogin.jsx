@@ -54,7 +54,7 @@ const AdminLogin = () => {
                 }
                 
                 message.success('Đăng nhập thành công!');
-                navigate(ROUTES.ADMIN_DASHBOARD);
+                navigate('/admin/dashboard');
             } else {
                 const errorMsg = 'Tên đăng nhập hoặc mật khẩu không đúng!';
                 setErrorMessage(errorMsg);

@@ -6,7 +6,6 @@ import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import { getBooksByCategory } from '../features/book/api/bookService';
 import { getAllCategories } from '../features/category/api/categoryService';
-import { isAdminOrStaff } from '../utils/jwt';
 import '../styles/home.css';
 
 const { Content } = Layout;
@@ -16,11 +15,9 @@ const Home = () => {
     const [categories, setCategories] = useState([]);
     const [booksByCategory, setBooksByCategory] = useState({});
     const [loading, setLoading] = useState(false);
-    const [isAdminStaff, setIsAdminStaff] = useState(false);
 
     useEffect(() => {
         loadCategories();
-        setIsAdminStaff(isAdminOrStaff());
     }, []);
 
     useEffect(() => {
@@ -85,15 +82,6 @@ const Home = () => {
                         <h2 className="section-title">
                             <BookOutlined /> Sách theo thể loại
                         </h2>
-                        {isAdminStaff && (
-                            <Button
-                                type="primary"
-                                className="login-button"
-                                onClick={() => navigate('/books/add')}
-                            >
-                                Thêm sách mới
-                            </Button>
-                        )}
                     </div>
 
                     <Spin spinning={loading}>
@@ -123,8 +111,6 @@ const Home = () => {
                                                     <div key={book.id} className="book-card-wrapper">
                                                         <BookCard
                                                             book={book}
-                                                            onDelete={() => {}}
-                                                            isAdminOrStaff={isAdminStaff}
                                                         />
                                                     </div>
                                                 ))}

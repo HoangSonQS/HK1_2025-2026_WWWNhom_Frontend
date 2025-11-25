@@ -287,6 +287,100 @@ const OrderDetailPage = () => {
             </Space>
           </Card>
 
+          <Card
+            title={
+              <Space>
+                <ShoppingOutlined style={{ color: "#722ed1" }} />
+                <span>Sản phẩm đã đặt</span>
+              </Space>
+            }
+            style={{ marginBottom: 16 }}
+          >
+            {order.orderDetails && order.orderDetails.length > 0 ? (
+              <div>
+                {order.orderDetails.map((detail, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      padding: "12px 0",
+                      borderBottom:
+                        index < order.orderDetails.length - 1
+                          ? "1px solid #f0f0f0"
+                          : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 80,
+                        height: 80,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#f8f9fa",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <img
+                        src={getImageUrl(detail.bookImageUrl)}
+                        alt={detail.bookTitle}
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "contain",
+                        }}
+                        onError={(e) => {
+                          e.target.src = "/placeholder-book.jpg";
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Text
+                        strong
+                        style={{
+                          fontSize: 16,
+                          cursor: "pointer",
+                          color: "#1890ff",
+                        }}
+                        onClick={() => navigate(`/books/${detail.bookId}`)}
+                      >
+                        {detail.bookTitle}
+                      </Text>
+                      <br />
+                      <Space style={{ marginTop: 8 }} size="small">
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          Số lượng:
+                        </Text>
+                        <Tag color="blue" style={{ fontSize: 12 }}>
+                          {detail.quantity}
+                        </Tag>
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          x {detail.priceAtPurchase.toLocaleString("vi-VN")} đ
+                        </Text>
+                      </Space>
+                      <br />
+                      <Space style={{ marginTop: 8 }}>
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          Thành tiền:
+                        </Text>
+                        <Text strong style={{ color: "#f5222d", fontSize: 16 }}>
+                          {(
+                            detail.priceAtPurchase * detail.quantity
+                          ).toLocaleString("vi-VN")}{" "}
+                          đ
+                        </Text>
+                      </Space>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Empty description="Không có sản phẩm nào" />
+            )}
+          </Card>
+
           {order.customerInfo && (
             <Card
               title={
@@ -453,100 +547,6 @@ const OrderDetailPage = () => {
                 </>
               )}
             </Space>
-          </Card>
-
-          <Card
-            title={
-              <Space>
-                <ShoppingOutlined style={{ color: "#722ed1" }} />
-                <span>Sản phẩm đã đặt</span>
-              </Space>
-            }
-            style={{ marginBottom: 16 }}
-          >
-            {order.orderDetails && order.orderDetails.length > 0 ? (
-              <div>
-                {order.orderDetails.map((detail, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      gap: 16,
-                      padding: "12px 0",
-                      borderBottom:
-                        index < order.orderDetails.length - 1
-                          ? "1px solid #f0f0f0"
-                          : "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 80,
-                        height: 80,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "#f8f9fa",
-                        overflow: "hidden",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <img
-                        src={getImageUrl(detail.bookImageUrl)}
-                        alt={detail.bookTitle}
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "100%",
-                          objectFit: "contain",
-                        }}
-                        onError={(e) => {
-                          e.target.src = "/placeholder-book.jpg";
-                        }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <Text
-                        strong
-                        style={{
-                          fontSize: 16,
-                          cursor: "pointer",
-                          color: "#1890ff",
-                        }}
-                        onClick={() => navigate(`/books/${detail.bookId}`)}
-                      >
-                        {detail.bookTitle}
-                      </Text>
-                      <br />
-                      <Space style={{ marginTop: 8 }} size="small">
-                        <Text type="secondary" style={{ fontSize: 13 }}>
-                          Số lượng:
-                        </Text>
-                        <Tag color="blue" style={{ fontSize: 12 }}>
-                          {detail.quantity}
-                        </Tag>
-                        <Text type="secondary" style={{ fontSize: 13 }}>
-                          x {detail.priceAtPurchase.toLocaleString("vi-VN")} đ
-                        </Text>
-                      </Space>
-                      <br />
-                      <Space style={{ marginTop: 8 }}>
-                        <Text type="secondary" style={{ fontSize: 13 }}>
-                          Thành tiền:
-                        </Text>
-                        <Text strong style={{ color: "#f5222d", fontSize: 16 }}>
-                          {(
-                            detail.priceAtPurchase * detail.quantity
-                          ).toLocaleString("vi-VN")}{" "}
-                          đ
-                        </Text>
-                      </Space>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Empty description="Không có sản phẩm nào" />
-            )}
           </Card>
 
           <Card

@@ -413,7 +413,7 @@ const Header = () => {
             <>
               <Badge
                 count={cartCount}
-                showZero={true}
+                showZero={false}
                 offset={[-9, 0]}
                 size="small"
               >

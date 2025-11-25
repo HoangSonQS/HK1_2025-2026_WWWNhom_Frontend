@@ -220,6 +220,64 @@ const AdminOrderDetailPage = () => {
       </Title>
 
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        {/* Chi tiết sản phẩm */}
+        <Card
+          title={
+            <Space>
+              <ShoppingOutlined />
+              <span>Sản phẩm</span>
+            </Space>
+          }
+        >
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {order.orderDetails?.map((detail, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  padding: 16,
+                  border: "1px solid #f0f0f0",
+                  borderRadius: 8,
+                }}
+              >
+                <img
+                  src={getImageUrl(detail.bookImageUrl)}
+                  alt={detail.bookTitle}
+                  style={{
+                    width: 80,
+                    height: 100,
+                    objectFit: "contain",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: 4,
+                  }}
+                />
+                <div style={{ flex: 1 }}>
+                  <Text strong style={{ fontSize: 16 }}>
+                    {detail.bookTitle}
+                  </Text>
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">Số lượng: </Text>
+                    <Text strong>{detail.quantity}</Text>
+                  </div>
+                  <div style={{ marginTop: 4 }}>
+                    <Text type="secondary">Giá: </Text>
+                    <Text strong style={{ color: "#ff6b35" }}>
+                      {formatCurrency(detail.priceAtPurchase)}
+                    </Text>
+                  </div>
+                  <div style={{ marginTop: 4 }}>
+                    <Text type="secondary">Thành tiền: </Text>
+                    <Text strong style={{ color: "#ff6b35", fontSize: 16 }}>
+                      {formatCurrency(detail.priceAtPurchase * detail.quantity)}
+                    </Text>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Space>
+        </Card>
+
         {/* Thông tin khách hàng */}
         <Card
           title={
@@ -293,64 +351,6 @@ const AdminOrderDetailPage = () => {
             >
               {order.paymentMethod === "VNPAY" ? "VNPay" : "Thanh toán khi nhận hàng"}
             </Tag>
-          </Space>
-        </Card>
-
-        {/* Chi tiết sản phẩm */}
-        <Card
-          title={
-            <Space>
-              <ShoppingOutlined />
-              <span>Sản phẩm</span>
-            </Space>
-          }
-        >
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            {order.orderDetails?.map((detail, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  gap: 16,
-                  padding: 16,
-                  border: "1px solid #f0f0f0",
-                  borderRadius: 8,
-                }}
-              >
-                <img
-                  src={getImageUrl(detail.bookImageUrl)}
-                  alt={detail.bookTitle}
-                  style={{
-                    width: 80,
-                    height: 100,
-                    objectFit: "contain",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: 4,
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <Text strong style={{ fontSize: 16 }}>
-                    {detail.bookTitle}
-                  </Text>
-                  <div style={{ marginTop: 8 }}>
-                    <Text type="secondary">Số lượng: </Text>
-                    <Text strong>{detail.quantity}</Text>
-                  </div>
-                  <div style={{ marginTop: 4 }}>
-                    <Text type="secondary">Giá: </Text>
-                    <Text strong style={{ color: "#ff6b35" }}>
-                      {formatCurrency(detail.priceAtPurchase)}
-                    </Text>
-                  </div>
-                  <div style={{ marginTop: 4 }}>
-                    <Text type="secondary">Thành tiền: </Text>
-                    <Text strong style={{ color: "#ff6b35", fontSize: 16 }}>
-                      {formatCurrency(detail.priceAtPurchase * detail.quantity)}
-                    </Text>
-                  </div>
-                </div>
-              </div>
-            ))}
           </Space>
         </Card>
 

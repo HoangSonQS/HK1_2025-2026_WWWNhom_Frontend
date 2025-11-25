@@ -19,6 +19,7 @@ import AdminHome from '../pages/admin/AdminHome';
 import AdminBooksPage from '../pages/admin/AdminBooksPage';
 import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
+import CartPage from '../pages/CartPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -48,6 +49,7 @@ const AppRoutes = () => {
       {/* Protected routes */}
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       <Route path={ROUTES.UPDATE_ACCOUNT} element={<UpdateAccount />} />
+      <Route path={ROUTES.CART} element={<CartPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

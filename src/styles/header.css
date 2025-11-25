@@ -77,6 +77,52 @@
     align-items: center;
 }
 
+/* Badge trên nút giỏ hàng */
+.header-actions .ant-badge {
+    margin-right: 8px;
+}
+
+.header-actions .ant-badge .ant-badge-count {
+    box-shadow: 0 0 0 2px #fff;
+    z-index: 1;
+    font-size: 10px;
+    min-width: 16px;
+    height: 16px;
+    line-height: 16px;
+    padding: 0 4px;
+}
+
+.cart-button {
+    transition: all 0.3s ease;
+    border: 1px solid #d9d9d9 !important;
+    background: transparent;
+}
+
+.cart-button .anticon {
+    transition: color 0.3s ease;
+    color: #333;
+}
+
+.cart-button:hover {
+    border-color: #ff6b35 !important;
+    background: transparent;
+}
+
+.cart-button:hover .anticon {
+    color: #ff6b35;
+}
+
+.cart-button:active,
+.cart-button:focus {
+    border-color: #ff6b35 !important;
+    color: #ff6b35;
+}
+
+.cart-button:active .anticon,
+.cart-button:focus .anticon {
+    color: #ff6b35;
+}
+
 .user-info {
     cursor: pointer;
     padding: 8px 12px;

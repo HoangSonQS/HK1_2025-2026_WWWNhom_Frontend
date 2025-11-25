@@ -23,6 +23,7 @@ export const ROUTES = {
   BOOK_EDIT: '/books/:id/edit',
   CATEGORIES: '/categories',
   CATEGORY_ADD: '/categories/add',
+  CART: '/cart',
 };
 
 export const STORAGE_KEYS = {

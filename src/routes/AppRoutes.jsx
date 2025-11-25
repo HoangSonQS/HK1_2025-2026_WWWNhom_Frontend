@@ -19,6 +19,8 @@ import AdminHome from '../pages/admin/AdminHome';
 import AdminBooksPage from '../pages/admin/AdminBooksPage';
 import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
+import AdminOrdersPage from '../pages/admin/AdminOrdersPage';
+import AdminOrderDetailPage from '../pages/admin/AdminOrderDetailPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import MyOrdersPage from '../pages/MyOrdersPage';
@@ -43,6 +45,8 @@ const AppRoutes = () => {
         <Route path="books" element={<AdminBooksPage />} />
         <Route path="categories" element={<AdminCategoriesPage />} />
         <Route path="accounts" element={<AdminAccountsPage />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="orders/:id" element={<AdminOrderDetailPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
       

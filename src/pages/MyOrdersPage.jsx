@@ -76,7 +76,7 @@ const MyOrdersPage = () => {
   const getStatusText = (status) => {
     switch (status) {
       case "PENDING":
-        return "Chờ xử lý";
+        return "Chờ xác nhận";
       case "PROCESSING":
         return "Đang xử lý";
       case "DELIVERING":
@@ -186,7 +186,7 @@ const MyOrdersPage = () => {
     },
     {
       key: "PENDING",
-      label: `Chờ xử lý (${getTabCount("PENDING")})`,
+      label: `Chờ xác nhận (${getTabCount("PENDING")})`,
     },
     {
       key: "PROCESSING",

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Row, Col, Statistic } from 'antd';
-import { BookOutlined, FolderOutlined, UserOutlined } from '@ant-design/icons';
+import { BookOutlined, FolderOutlined, UserOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const AdminHome = () => {
@@ -41,6 +41,17 @@ const AdminHome = () => {
                         <UserOutlined style={{ fontSize: 48, color: '#ff6b35', marginBottom: 16 }} />
                         <h3>Quản lý Tài khoản</h3>
                         <p>Xem và cập nhật tài khoản</p>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                    <Card 
+                        hoverable
+                        onClick={() => navigate('/admin/orders')}
+                        style={{ textAlign: 'center' }}
+                    >
+                        <ShoppingOutlined style={{ fontSize: 48, color: '#722ed1', marginBottom: 16 }} />
+                        <h3>Quản lý Đơn hàng</h3>
+                        <p>Xem và quản lý đơn hàng</p>
                     </Card>
                 </Col>
             </Row>

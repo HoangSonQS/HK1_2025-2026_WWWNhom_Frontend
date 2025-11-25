@@ -25,3 +25,14 @@ export const confirmReceived = async (orderId) => {
   return response;
 };
 
+// Admin APIs
+export const getAllOrders = async () => {
+  const response = await apiClient.get('/orders/all');
+  return response;
+};
+
+export const updateOrderStatus = async (orderId, status) => {
+  const response = await apiClient.put(`/orders/${orderId}/status`, { status });
+  return response;
+};
+

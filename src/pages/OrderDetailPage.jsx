@@ -94,7 +94,7 @@ const OrderDetailPage = () => {
   const getStatusText = (status) => {
     switch (status) {
       case "PENDING":
-        return "Chờ xử lý";
+        return "Chờ xác nhận";
       case "PROCESSING":
         return "Đang xử lý";
       case "DELIVERING":

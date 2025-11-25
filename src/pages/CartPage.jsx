@@ -237,8 +237,7 @@ const CartPage = () => {
       message.warning("Giỏ hàng trống");
       return;
     }
-    // TODO: Navigate to checkout page when implemented
-    message.info("Tính năng thanh toán đang được phát triển");
+    navigate(ROUTES.CHECKOUT);
   };
 
   if (loading && !cart) {

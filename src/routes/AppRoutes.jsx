@@ -20,6 +20,9 @@ import AdminBooksPage from '../pages/admin/AdminBooksPage';
 import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
 import CartPage from '../pages/CartPage';
+import CheckoutPage from '../pages/CheckoutPage';
+import MyOrdersPage from '../pages/MyOrdersPage';
+import OrderDetailPage from '../pages/OrderDetailPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -50,6 +53,9 @@ const AppRoutes = () => {
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       <Route path={ROUTES.UPDATE_ACCOUNT} element={<UpdateAccount />} />
       <Route path={ROUTES.CART} element={<CartPage />} />
+      <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
+      <Route path={ROUTES.MY_ORDERS} element={<MyOrdersPage />} />
+      <Route path="/orders/:id" element={<OrderDetailPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

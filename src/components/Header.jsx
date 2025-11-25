@@ -17,6 +17,7 @@ import {
   SettingOutlined,
   SearchOutlined,
   ShoppingCartOutlined,
+  ShoppingOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../utils/constants";
@@ -76,6 +77,12 @@ const Header = () => {
       icon: <UserOutlined />,
       label: "Thông tin tài khoản",
       onClick: () => navigate(ROUTES.UPDATE_ACCOUNT),
+    },
+    {
+      key: "my-orders",
+      icon: <ShoppingOutlined />,
+      label: "Đơn hàng của tôi",
+      onClick: () => navigate(ROUTES.MY_ORDERS),
     },
     {
       key: "change-password",

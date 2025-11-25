@@ -24,6 +24,9 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   CATEGORY_ADD: '/categories/add',
   CART: '/cart',
+  CHECKOUT: '/checkout',
+  MY_ORDERS: '/my-orders',
+  ORDER_DETAIL: '/orders/:id',
 };
 
 export const STORAGE_KEYS = {

@@ -13,9 +13,24 @@ import {
   Modal,
 } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  CreditCardOutlined,
+  WalletOutlined,
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  CalendarOutlined,
+  ShoppingOutlined,
+  TagOutlined,
+} from "@ant-design/icons";
 import Header from "../components/Header";
-import { getOrderById, cancelOrder, confirmReceived } from "../features/order/api/orderService";
+import {
+  getOrderById,
+  cancelOrder,
+  confirmReceived,
+} from "../features/order/api/orderService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
 import "../styles/cart.css";
@@ -38,6 +53,8 @@ const OrderDetailPage = () => {
     setLoading(true);
     try {
       const response = await getOrderById(id);
+      console.log("Order data:", response.data);
+      console.log("Payment method:", response.data?.paymentMethod);
       setOrder(response.data);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -107,7 +124,7 @@ const OrderDetailPage = () => {
 
   const handleCancelOrder = () => {
     if (!order) return;
-    
+
     Modal.confirm({
       title: "Xác nhận hủy đơn hàng",
       content: `Bạn có chắc chắn muốn hủy đơn hàng #${order.id}?`,
@@ -135,7 +152,7 @@ const OrderDetailPage = () => {
 
   const handleConfirmReceived = () => {
     if (!order) return;
-    
+
     Modal.confirm({
       title: "Xác nhận đã nhận hàng",
       content: `Bạn có chắc chắn đã nhận được đơn hàng #${order.id}?`,
@@ -205,72 +222,133 @@ const OrderDetailPage = () => {
             Quay lại
           </Button>
 
-          <Title level={2} style={{ marginBottom: 16, color: "#333" }}>
-            CHI TIẾT ĐƠN HÀNG #{order.id}
-          </Title>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
+            }}
+          >
+            <Title level={2} style={{ margin: 0, color: "#333" }}>
+              CHI TIẾT ĐƠN HÀNG #{order.id}
+            </Title>
+            <Space>
+              {order.status === "PENDING" && (
+                <Button
+                  danger
+                  size="large"
+                  onClick={handleCancelOrder}
+                  loading={actionLoading}
+                >
+                  Hủy đơn
+                </Button>
+              )}
+              {order.status === "DELIVERING" && (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={handleConfirmReceived}
+                  loading={actionLoading}
+                >
+                  Đã nhận
+                </Button>
+              )}
+            </Space>
+          </div>
 
           <Card style={{ marginBottom: 16 }}>
             <Space direction="vertical" style={{ width: "100%" }} size="middle">
               <div>
-                <Text type="secondary">Ngày đặt hàng:</Text>
-                <Text strong style={{ marginLeft: 8 }}>
-                  {formatDate(order.orderDate)}
-                </Text>
+                <Space>
+                  <CalendarOutlined
+                    style={{ fontSize: 16, color: "#1890ff" }}
+                  />
+                  <Text type="secondary" style={{ fontSize: 14 }}>
+                    Ngày đặt hàng:
+                  </Text>
+                  <Text strong style={{ fontSize: 15 }}>
+                    {formatDate(order.orderDate)}
+                  </Text>
+                </Space>
               </div>
               <div>
-                <Text type="secondary">Trạng thái:</Text>
-                <Tag
-                  color={getStatusColor(order.status)}
-                  style={{ marginLeft: 8, fontSize: 14 }}
-                >
-                  {getStatusText(order.status)}
-                </Tag>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                {order.status === "PENDING" && (
-                  <Button
-                    danger
-                    onClick={handleCancelOrder}
-                    loading={actionLoading}
-                    style={{ marginRight: 8 }}
+                <Space>
+                  <TagOutlined style={{ fontSize: 16, color: "#52c41a" }} />
+                  <Text type="secondary" style={{ fontSize: 14 }}>
+                    Trạng thái:
+                  </Text>
+                  <Tag
+                    color={getStatusColor(order.status)}
+                    style={{ fontSize: 14, padding: "4px 12px" }}
                   >
-                    Hủy đơn
-                  </Button>
-                )}
-                {order.status === "DELIVERING" && (
-                  <Button
-                    type="primary"
-                    onClick={handleConfirmReceived}
-                    loading={actionLoading}
-                  >
-                    Đã nhận
-                  </Button>
-                )}
+                    {getStatusText(order.status)}
+                  </Tag>
+                </Space>
               </div>
             </Space>
           </Card>
 
           {order.customerInfo && (
-            <Card title="Thông tin khách hàng" style={{ marginBottom: 16 }}>
-              <Space direction="vertical" style={{ width: "100%" }} size="small">
+            <Card
+              title={
+                <Space>
+                  <UserOutlined style={{ color: "#1890ff" }} />
+                  <span>Thông tin khách hàng</span>
+                </Space>
+              }
+              style={{ marginBottom: 16 }}
+            >
+              <Space
+                direction="vertical"
+                style={{ width: "100%" }}
+                size="middle"
+              >
                 <div>
-                  <Text type="secondary">Họ tên:</Text>
-                  <Text strong style={{ marginLeft: 8 }}>
-                    {order.customerInfo.firstName} {order.customerInfo.lastName}
-                  </Text>
+                  <Space>
+                    <UserOutlined style={{ fontSize: 16, color: "#722ed1" }} />
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: 14, minWidth: 100 }}
+                    >
+                      Họ tên:
+                    </Text>
+                    <Text strong style={{ fontSize: 15 }}>
+                      {order.customerInfo.firstName}{" "}
+                      {order.customerInfo.lastName}
+                    </Text>
+                  </Space>
                 </div>
                 <div>
-                  <Text type="secondary">Email:</Text>
-                  <Text strong style={{ marginLeft: 8 }}>
-                    {order.customerInfo.email}
-                  </Text>
+                  <Space>
+                    <MailOutlined style={{ fontSize: 16, color: "#13c2c2" }} />
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: 14, minWidth: 100 }}
+                    >
+                      Email:
+                    </Text>
+                    <Text strong style={{ fontSize: 15 }}>
+                      {order.customerInfo.email}
+                    </Text>
+                  </Space>
                 </div>
                 {order.customerInfo.phoneNumber && (
                   <div>
-                    <Text type="secondary">Số điện thoại:</Text>
-                    <Text strong style={{ marginLeft: 8 }}>
-                      {order.customerInfo.phoneNumber}
-                    </Text>
+                    <Space>
+                      <PhoneOutlined
+                        style={{ fontSize: 16, color: "#52c41a" }}
+                      />
+                      <Text
+                        type="secondary"
+                        style={{ fontSize: 14, minWidth: 100 }}
+                      >
+                        Số điện thoại:
+                      </Text>
+                      <Text strong style={{ fontSize: 15 }}>
+                        {order.customerInfo.phoneNumber}
+                      </Text>
+                    </Space>
                   </div>
                 )}
               </Space>
@@ -278,41 +356,116 @@ const OrderDetailPage = () => {
           )}
 
           {order.deliveryAddress && (
-            <Card title="Địa chỉ giao hàng" style={{ marginBottom: 16 }}>
-              <Space direction="vertical" style={{ width: "100%" }} size="small">
+            <Card
+              title={
+                <Space>
+                  <EnvironmentOutlined style={{ color: "#f5222d" }} />
+                  <span>Địa chỉ giao hàng</span>
+                </Space>
+              }
+              style={{ marginBottom: 16 }}
+            >
+              <Space
+                direction="vertical"
+                style={{ width: "100%" }}
+                size="middle"
+              >
                 <div>
-                  <Text strong>
-                    {order.deliveryAddress.recipientName}
-                  </Text>
-                  {order.deliveryAddress.phoneNumber && (
-                    <Text type="secondary" style={{ marginLeft: 8 }}>
-                      {order.deliveryAddress.phoneNumber}
+                  <Space>
+                    <UserOutlined style={{ fontSize: 16, color: "#722ed1" }} />
+                    <Text strong style={{ fontSize: 15 }}>
+                      {order.deliveryAddress.recipientName}
                     </Text>
-                  )}
+                    {order.deliveryAddress.phoneNumber && (
+                      <>
+                        <Text type="secondary">|</Text>
+                        <PhoneOutlined
+                          style={{ fontSize: 14, color: "#52c41a" }}
+                        />
+                        <Text type="secondary" style={{ fontSize: 14 }}>
+                          {order.deliveryAddress.phoneNumber}
+                        </Text>
+                      </>
+                    )}
+                  </Space>
                 </div>
                 <div>
-                  <Text>
-                    {order.deliveryAddress.street && `${order.deliveryAddress.street}, `}
-                    {order.deliveryAddress.ward && `${order.deliveryAddress.ward}, `}
-                    {order.deliveryAddress.district && `${order.deliveryAddress.district}, `}
-                    {order.deliveryAddress.city}
-                  </Text>
+                  <Space align="start">
+                    <EnvironmentOutlined
+                      style={{ fontSize: 16, color: "#f5222d", marginTop: 4 }}
+                    />
+                    <Text style={{ fontSize: 14, lineHeight: 1.8 }}>
+                      {order.deliveryAddress.street &&
+                        `${order.deliveryAddress.street}, `}
+                      {order.deliveryAddress.ward &&
+                        `${order.deliveryAddress.ward}, `}
+                      {order.deliveryAddress.district &&
+                        `${order.deliveryAddress.district}, `}
+                      {order.deliveryAddress.city}
+                    </Text>
+                  </Space>
                 </div>
               </Space>
             </Card>
           )}
 
-          <Card title="Phương thức thanh toán" style={{ marginBottom: 16 }}>
-            <Text strong>
-              {order.paymentMethod === "CASH"
-                ? "Thanh toán khi nhận hàng (COD)"
-                : order.paymentMethod === "VNPAY"
-                ? "Thanh toán qua VNPay"
-                : order.paymentMethod || "Chưa xác định"}
-            </Text>
+          <Card
+            title={
+              <Space>
+                <CreditCardOutlined style={{ color: "#1890ff" }} />
+                <span>Phương thức thanh toán</span>
+              </Space>
+            }
+            style={{ marginBottom: 16 }}
+          >
+            <Space size="middle">
+              {order.paymentMethod === "CASH" ? (
+                <>
+                  <WalletOutlined style={{ fontSize: 20, color: "#52c41a" }} />
+                  <Text strong style={{ fontSize: 16 }}>
+                    Thanh toán khi nhận hàng (COD)
+                  </Text>
+                  <Tag color="green">COD</Tag>
+                </>
+              ) : order.paymentMethod === "VNPAY" ? (
+                <>
+                  <CreditCardOutlined
+                    style={{ fontSize: 20, color: "#1890ff" }}
+                  />
+                  <Text strong style={{ fontSize: 16 }}>
+                    Thanh toán qua VNPay
+                  </Text>
+                  <Tag color="blue">VNPay</Tag>
+                </>
+              ) : order.paymentMethod ? (
+                <>
+                  <CreditCardOutlined style={{ fontSize: 20 }} />
+                  <Text strong style={{ fontSize: 16 }}>
+                    {order.paymentMethod}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <CreditCardOutlined
+                    style={{ fontSize: 20, color: "#d9d9d9" }}
+                  />
+                  <Text type="secondary" style={{ fontSize: 16 }}>
+                    Chưa xác định
+                  </Text>
+                </>
+              )}
+            </Space>
           </Card>
 
-          <Card title="Sản phẩm đã đặt" style={{ marginBottom: 16 }}>
+          <Card
+            title={
+              <Space>
+                <ShoppingOutlined style={{ color: "#722ed1" }} />
+                <span>Sản phẩm đã đặt</span>
+              </Space>
+            }
+            style={{ marginBottom: 16 }}
+          >
             {order.orderDetails && order.orderDetails.length > 0 ? (
               <div>
                 {order.orderDetails.map((detail, index) => (
@@ -356,23 +509,39 @@ const OrderDetailPage = () => {
                     <div style={{ flex: 1 }}>
                       <Text
                         strong
-                        style={{ fontSize: 16, cursor: "pointer" }}
+                        style={{
+                          fontSize: 16,
+                          cursor: "pointer",
+                          color: "#1890ff",
+                        }}
                         onClick={() => navigate(`/books/${detail.bookId}`)}
                       >
                         {detail.bookTitle}
                       </Text>
                       <br />
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Số lượng: {detail.quantity} x{" "}
-                        {detail.priceAtPurchase.toLocaleString("vi-VN")} đ
-                      </Text>
+                      <Space style={{ marginTop: 8 }} size="small">
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          Số lượng:
+                        </Text>
+                        <Tag color="blue" style={{ fontSize: 12 }}>
+                          {detail.quantity}
+                        </Tag>
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          x {detail.priceAtPurchase.toLocaleString("vi-VN")} đ
+                        </Text>
+                      </Space>
                       <br />
-                      <Text strong style={{ color: "#f5222d" }}>
-                        {(detail.priceAtPurchase * detail.quantity).toLocaleString(
-                          "vi-VN"
-                        )}{" "}
-                        đ
-                      </Text>
+                      <Space style={{ marginTop: 8 }}>
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          Thành tiền:
+                        </Text>
+                        <Text strong style={{ color: "#f5222d", fontSize: 16 }}>
+                          {(
+                            detail.priceAtPurchase * detail.quantity
+                          ).toLocaleString("vi-VN")}{" "}
+                          đ
+                        </Text>
+                      </Space>
                     </div>
                   </div>
                 ))}
@@ -382,17 +551,29 @@ const OrderDetailPage = () => {
             )}
           </Card>
 
-          <Card title="Tóm tắt đơn hàng">
+          <Card
+            title={
+              <Space>
+                <TagOutlined style={{ color: "#f5222d" }} />
+                <span>Tóm tắt đơn hàng</span>
+              </Space>
+            }
+          >
             <Space direction="vertical" style={{ width: "100%" }} size="middle">
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  padding: "8px 0",
                 }}
               >
-                <Text>Tạm tính:</Text>
-                <Text>
+                <Space>
+                  <Text type="secondary" style={{ fontSize: 14 }}>
+                    Tạm tính:
+                  </Text>
+                </Space>
+                <Text strong style={{ fontSize: 15 }}>
                   {order.subtotal?.toLocaleString("vi-VN") || "0"} đ
                 </Text>
               </div>
@@ -403,25 +584,29 @@ const OrderDetailPage = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      padding: "8px 0",
                     }}
                   >
-                    <Text type="secondary">
-                      Mã khuyến mãi ({order.appliedPromotion.code}):
-                    </Text>
-                    <Text type="secondary" style={{ color: "#52c41a" }}>
+                    <Space>
+                      <TagOutlined style={{ fontSize: 14, color: "#52c41a" }} />
+                      <Text type="secondary" style={{ fontSize: 14 }}>
+                        Mã khuyến mãi ({order.appliedPromotion.code}):
+                      </Text>
+                    </Space>
+                    <Text strong style={{ color: "#52c41a", fontSize: 15 }}>
                       -{order.discountAmount?.toLocaleString("vi-VN") || "0"} đ
                     </Text>
                   </div>
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      padding: "0 0 8px 0",
                     }}
                   >
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Tag color="green" style={{ fontSize: 12 }}>
                       Giảm {order.appliedPromotion.discountPercent}%
-                    </Text>
+                    </Tag>
                   </div>
                 </>
               )}
@@ -431,10 +616,19 @@ const OrderDetailPage = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  padding: "8px 0",
+                  background: "#f8f9fa",
+                  margin: "-8px -16px",
+                  padding: "12px 16px",
+                  borderRadius: "4px",
                 }}
               >
-                <Text strong>Tổng tiền:</Text>
-                <Text strong style={{ fontSize: 20, color: "#f5222d" }}>
+                <Space>
+                  <Text strong style={{ fontSize: 16 }}>
+                    Tổng tiền:
+                  </Text>
+                </Space>
+                <Text strong style={{ fontSize: 22, color: "#f5222d" }}>
                   {order.totalAmount.toLocaleString("vi-VN")} đ
                 </Text>
               </div>
@@ -447,4 +641,3 @@ const OrderDetailPage = () => {
 };
 
 export default OrderDetailPage;
-

@@ -23,6 +23,7 @@ import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import MyOrdersPage from '../pages/MyOrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
+import NotificationsPage from '../pages/NotificationsPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -56,6 +57,7 @@ const AppRoutes = () => {
       <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
       <Route path={ROUTES.MY_ORDERS} element={<MyOrdersPage />} />
       <Route path="/orders/:id" element={<OrderDetailPage />} />
+      <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

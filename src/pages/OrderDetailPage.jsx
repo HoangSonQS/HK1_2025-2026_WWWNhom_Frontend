@@ -199,9 +199,7 @@ const OrderDetailPage = () => {
           <div className="cart-container">
             <Empty description="Không tìm thấy đơn hàng" />
             <div style={{ textAlign: "center", marginTop: 16 }}>
-              <Button onClick={() => navigate(ROUTES.MY_ORDERS)}>
-                Quay lại danh sách đơn hàng
-              </Button>
+              <Button onClick={() => navigate(-1)}>Quay lại</Button>
             </div>
           </div>
         </Content>
@@ -216,7 +214,7 @@ const OrderDetailPage = () => {
         <div className="cart-container">
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(ROUTES.MY_ORDERS)}
+            onClick={() => navigate(-1)}
             style={{ marginBottom: 16 }}
           >
             Quay lại

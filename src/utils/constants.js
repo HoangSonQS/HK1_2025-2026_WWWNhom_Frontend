@@ -27,6 +27,7 @@ export const ROUTES = {
   CHECKOUT: '/checkout',
   MY_ORDERS: '/my-orders',
   ORDER_DETAIL: '/orders/:id',
+  NOTIFICATIONS: '/notifications',
 };
 
 export const STORAGE_KEYS = {

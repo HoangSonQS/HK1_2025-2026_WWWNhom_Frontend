@@ -123,6 +123,37 @@
     color: #ff6b35;
 }
 
+.notification-button {
+    transition: all 0.3s ease;
+    border: 1px solid #d9d9d9 !important;
+    background: transparent;
+}
+
+.notification-button .anticon {
+    transition: color 0.3s ease;
+    color: #333;
+}
+
+.notification-button:hover {
+    border-color: #ff6b35 !important;
+    background: transparent;
+}
+
+.notification-button:hover .anticon {
+    color: #ff6b35;
+}
+
+.notification-button:active,
+.notification-button:focus {
+    border-color: #ff6b35 !important;
+    color: #ff6b35;
+}
+
+.notification-button:active .anticon,
+.notification-button:focus .anticon {
+    color: #ff6b35;
+}
+
 .user-info {
     cursor: pointer;
     padding: 8px 12px;

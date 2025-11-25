@@ -171,6 +171,9 @@ const CheckoutPage = () => {
       // Trigger event để cập nhật cart count trong Header
       window.dispatchEvent(new CustomEvent("cartUpdated"));
 
+      // Trigger event để cập nhật notification count trong Header
+      window.dispatchEvent(new CustomEvent("notificationUpdated"));
+
       // Chuyển đến trang chủ
       navigate(ROUTES.HOME);
     } catch (error) {

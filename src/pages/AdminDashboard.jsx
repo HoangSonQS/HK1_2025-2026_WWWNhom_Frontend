@@ -6,7 +6,8 @@ import {
     FolderOutlined,
     UserOutlined,
     DashboardOutlined,
-    LogoutOutlined
+    LogoutOutlined,
+    ShoppingOutlined
 } from '@ant-design/icons';
 import { checkAdminRole } from '../utils/jwt';
 import { ROUTES } from '../utils/constants';
@@ -67,6 +68,12 @@ const AdminDashboard = () => {
             onClick: () => navigate('/admin/accounts')
         },
         {
+            key: '/admin/orders',
+            icon: <ShoppingOutlined />,
+            label: 'Quản lý Đơn hàng',
+            onClick: () => navigate('/admin/orders')
+        },
+        {
             key: 'logout',
             icon: <LogoutOutlined />,
             label: 'Đăng xuất',
@@ -81,6 +88,7 @@ const AdminDashboard = () => {
         if (path.startsWith('/admin/books')) return '/admin/books';
         if (path.startsWith('/admin/categories')) return '/admin/categories';
         if (path.startsWith('/admin/accounts')) return '/admin/accounts';
+        if (path.startsWith('/admin/orders')) return '/admin/orders';
         return '/admin/dashboard';
     };
 

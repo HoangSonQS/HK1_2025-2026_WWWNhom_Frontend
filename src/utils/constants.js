@@ -23,6 +23,11 @@ export const ROUTES = {
   BOOK_EDIT: '/books/:id/edit',
   CATEGORIES: '/categories',
   CATEGORY_ADD: '/categories/add',
+  CART: '/cart',
+  CHECKOUT: '/checkout',
+  MY_ORDERS: '/my-orders',
+  ORDER_DETAIL: '/orders/:id',
+  NOTIFICATIONS: '/notifications',
 };
 
 export const STORAGE_KEYS = {

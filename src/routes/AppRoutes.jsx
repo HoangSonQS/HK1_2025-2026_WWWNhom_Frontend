@@ -19,6 +19,13 @@ import AdminHome from '../pages/admin/AdminHome';
 import AdminBooksPage from '../pages/admin/AdminBooksPage';
 import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
+import AdminOrdersPage from '../pages/admin/AdminOrdersPage';
+import AdminOrderDetailPage from '../pages/admin/AdminOrderDetailPage';
+import CartPage from '../pages/CartPage';
+import CheckoutPage from '../pages/CheckoutPage';
+import MyOrdersPage from '../pages/MyOrdersPage';
+import OrderDetailPage from '../pages/OrderDetailPage';
+import NotificationsPage from '../pages/NotificationsPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -38,6 +45,8 @@ const AppRoutes = () => {
         <Route path="books" element={<AdminBooksPage />} />
         <Route path="categories" element={<AdminCategoriesPage />} />
         <Route path="accounts" element={<AdminAccountsPage />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="orders/:id" element={<AdminOrderDetailPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
       
@@ -48,6 +57,11 @@ const AppRoutes = () => {
       {/* Protected routes */}
       <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePassword />} />
       <Route path={ROUTES.UPDATE_ACCOUNT} element={<UpdateAccount />} />
+      <Route path={ROUTES.CART} element={<CartPage />} />
+      <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
+      <Route path={ROUTES.MY_ORDERS} element={<MyOrdersPage />} />
+      <Route path="/orders/:id" element={<OrderDetailPage />} />
+      <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

@@ -4,6 +4,7 @@ import { BookOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
+import BackToTop from '../components/BackToTop';
 import { getBooksByCategory } from '../features/book/api/bookService';
 import { getAllCategories } from '../features/category/api/categoryService';
 import '../styles/home.css';
@@ -127,6 +128,7 @@ const Home = () => {
                     )}
                 </div>
             </Content>
+            <BackToTop />
         </Layout>
     );
 };

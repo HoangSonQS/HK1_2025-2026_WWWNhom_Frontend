@@ -197,6 +197,10 @@ const EditBookPage = () => {
                             size="large"
                             placeholder="Chọn thể loại"
                             className="login-input"
+                            showSearch
+                            filterOption={(input, option) =>
+                                (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
                         >
                             {categories.map(category => (
                                 <Option key={category.id} value={category.id}>

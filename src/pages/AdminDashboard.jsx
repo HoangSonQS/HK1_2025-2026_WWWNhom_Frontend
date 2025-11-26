@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Card, Typography, message } from 'antd';
+import { Layout, Menu, Typography, message } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
     BookOutlined,
@@ -12,7 +12,6 @@ import {
 import { checkAdminRole } from '../utils/jwt';
 import { ROUTES } from '../utils/constants';
 import { logout } from '../features/user/api/authService';
-import Header from '../components/Header';
 import '../styles/admin.css';
 
 const { Sider, Content } = Layout;
@@ -94,47 +93,61 @@ const AdminDashboard = () => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Header />
-            <Layout>
-                <Sider
-                    collapsible
-                    collapsed={collapsed}
-                    onCollapse={setCollapsed}
-                    width={250}
+            <Sider
+                collapsible
+                collapsed={collapsed}
+                onCollapse={setCollapsed}
+                width={250}
+                style={{
+                    background: '#001529',
+                    boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    overflow: 'auto'
+                }}
+            >
+                <div style={{ 
+                    padding: '16px', 
+                    textAlign: 'center',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)'
+                }}>
+                    <Title level={4} style={{ margin: 0, color: '#fff' }}>
+                        {collapsed ? 'AD' : 'ADMIN'}
+                    </Title>
+                </div>
+                <Menu
+                    mode="inline"
+                    selectedKeys={[getSelectedKey()]}
+                    items={menuItems}
+                    style={{ 
+                        borderRight: 0, 
+                        marginTop: 8,
+                        background: '#001529',
+                        color: '#fff'
+                    }}
+                    theme="dark"
+                />
+            </Sider>
+            <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'all 0.2s' }}>
+                <Content
                     style={{
-                        background: '#fff',
-                        boxShadow: '2px 0 8px rgba(0,0,0,0.1)'
+                        background: '#f0f2f5',
+                        padding: 24,
+                        margin: 0,
+                        minHeight: '100vh'
                     }}
                 >
-                    <div style={{ 
-                        padding: '16px', 
-                        textAlign: 'center',
-                        borderBottom: '1px solid #f0f0f0'
+                    <div style={{
+                        background: '#fff',
+                        padding: 24,
+                        borderRadius: 8,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     }}>
-                        <Title level={4} style={{ margin: 0, color: '#ff6b35' }}>
-                            {collapsed ? 'AD' : 'ADMIN'}
-                        </Title>
-                    </div>
-                    <Menu
-                        mode="inline"
-                        selectedKeys={[getSelectedKey()]}
-                        items={menuItems}
-                        style={{ borderRight: 0, marginTop: 8 }}
-                    />
-                </Sider>
-                <Layout style={{ padding: '24px' }}>
-                    <Content
-                        style={{
-                            background: '#fff',
-                            padding: 24,
-                            margin: 0,
-                            minHeight: 280,
-                            borderRadius: 8
-                        }}
-                    >
                         <Outlet />
-                    </Content>
-                </Layout>
+                    </div>
+                </Content>
             </Layout>
         </Layout>
     );

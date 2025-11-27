@@ -4,16 +4,18 @@ import { PlusOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons';
 import { 
     getAllPromotions, 
     deactivatePromotion, 
-    approvePromotion 
+    approvePromotion
 } from '../../features/promotion/api/promotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPromotionsPage = () => {
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [promotionModalOpen, setPromotionModalOpen] = useState(false);
     const [editingPromotionId, setEditingPromotionId] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadPromotions();
@@ -278,6 +280,18 @@ const AdminPromotionsPage = () => {
             fixed: 'right',
             render: (_, record) => (
                 <Space size="middle">
+                    <Button
+                        type="primary"
+                        onClick={() => navigate(`/admin/promotions/${record.id}`)}
+                        style={{
+                            backgroundColor: '#1677ff',
+                            borderColor: '#1677ff',
+                            borderRadius: '4px',
+                            fontWeight: 500,
+                        }}
+                    >
+                        Xem chi tiết
+                    </Button>
                     {!record.approvedByName && (
                         <Popconfirm
                             title="Bạn có chắc chắn muốn duyệt khuyến mãi này?"
@@ -332,7 +346,7 @@ const AdminPromotionsPage = () => {
                 alignItems: 'center',
                 marginBottom: 24 
             }}>
-                <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#262626' }}>Quản lý Ưu đãi</h1>
+                <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#262626' }}>Quản lý Khuyến mãi</h1>
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}

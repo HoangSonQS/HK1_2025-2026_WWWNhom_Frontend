@@ -21,6 +21,7 @@ import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage';
 import AdminOrderDetailPage from '../pages/admin/AdminOrderDetailPage';
+import AdminPromotionDetailPage from '../pages/admin/AdminPromotionDetailPage';
 import AdminPromotionsPage from '../pages/admin/AdminPromotionsPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
@@ -49,6 +50,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<AdminOrdersPage />} />
         <Route path="orders/:id" element={<AdminOrderDetailPage />} />
         <Route path="promotions" element={<AdminPromotionsPage />} />
+        <Route path="promotions/:id" element={<AdminPromotionDetailPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
       

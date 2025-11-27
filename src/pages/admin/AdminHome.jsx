@@ -61,7 +61,7 @@ const AdminHome = () => {
                         style={{ textAlign: 'center' }}
                     >
                         <GiftOutlined style={{ fontSize: 48, color: '#faad14', marginBottom: 16 }} />
-                        <h3>Quản lý Ưu đãi</h3>
+                        <h3>Quản lý Khuyến mãi</h3>
                         <p>Tạo và quản lý khuyến mãi</p>
                     </Card>
                 </Col>

@@ -77,7 +77,7 @@ const AdminDashboard = () => {
         {
             key: '/admin/promotions',
             icon: <GiftOutlined />,
-            label: 'Quản lý Ưu đãi',
+            label: 'Quản lý Khuyến mãi',
             onClick: () => navigate('/admin/promotions')
         },
         {

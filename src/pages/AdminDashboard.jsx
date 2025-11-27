@@ -7,7 +7,8 @@ import {
     UserOutlined,
     DashboardOutlined,
     LogoutOutlined,
-    ShoppingOutlined
+    ShoppingOutlined,
+    GiftOutlined
 } from '@ant-design/icons';
 import { checkAdminRole } from '../utils/jwt';
 import { ROUTES } from '../utils/constants';
@@ -74,6 +75,12 @@ const AdminDashboard = () => {
             onClick: () => navigate('/admin/orders')
         },
         {
+            key: '/admin/promotions',
+            icon: <GiftOutlined />,
+            label: 'Quản lý Ưu đãi',
+            onClick: () => navigate('/admin/promotions')
+        },
+        {
             key: 'logout',
             icon: <LogoutOutlined />,
             label: 'Đăng xuất',
@@ -89,6 +96,7 @@ const AdminDashboard = () => {
         if (path.startsWith('/admin/categories')) return '/admin/categories';
         if (path.startsWith('/admin/accounts')) return '/admin/accounts';
         if (path.startsWith('/admin/orders')) return '/admin/orders';
+        if (path.startsWith('/admin/promotions')) return '/admin/promotions';
         return '/admin/dashboard';
     };
 

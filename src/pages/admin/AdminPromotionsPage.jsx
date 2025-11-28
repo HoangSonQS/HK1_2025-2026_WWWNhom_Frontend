@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag, Tabs } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Space, message, Tag, Tabs, Input } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { 
-    getAllPromotions, 
-    deactivatePromotion
+    getAllPromotions
 } from '../../features/promotion/api/promotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
@@ -15,6 +14,7 @@ const AdminPromotionsPage = () => {
     const [promotionModalOpen, setPromotionModalOpen] = useState(false);
     const [editingPromotionId, setEditingPromotionId] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
+    const [searchKeyword, setSearchKeyword] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,27 +43,6 @@ const AdminPromotionsPage = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        try {
-            await deactivatePromotion(id);
-            message.success('Vô hiệu hóa khuyến mãi thành công');
-            
-            // Cập nhật state
-            setPromotions(prevPromotions => {
-                const updated = prevPromotions.map(promo => 
-                    promo.id === id ? { ...promo, isActive: false } : promo
-                );
-                return updated.sort((a, b) => {
-                    const idA = a.id || 0;
-                    const idB = b.id || 0;
-                    return idA - idB;
-                });
-            });
-        } catch (error) {
-            console.error('Error deactivating promotion:', error);
-            message.error('Vô hiệu hóa khuyến mãi thất bại');
-        }
-    };
 
     const handleAddPromotion = () => {
         setEditingPromotionId(null);
@@ -112,17 +91,43 @@ const AdminPromotionsPage = () => {
         if (!endDate) return false;
         return dayjs(endDate).isBefore(dayjs(), 'day');
     };
+    const filteredPromotions = useMemo(() => {
+        const keyword = searchKeyword.trim().toLowerCase();
+        if (!keyword) return promotions;
+        return promotions.filter(promo => {
+            const name = promo.name?.toLowerCase() || '';
+            const code = promo.code?.toLowerCase() || '';
+            return name.includes(keyword) || code.includes(keyword);
+        });
+    }, [promotions, searchKeyword]);
+
     const pendingPromotions = useMemo(
-        () => promotions.filter(promo => promo.status === 'PENDING'),
-        [promotions]
+        () => filteredPromotions.filter(promo => promo.status === 'PENDING'),
+        [filteredPromotions]
+    );
+
+    const approvedPromotions = useMemo(
+        () => filteredPromotions.filter(promo => promo.status === 'ACTIVE'),
+        [filteredPromotions]
+    );
+
+    const rejectedPromotions = useMemo(
+        () => filteredPromotions.filter(promo => promo.status === 'REJECTED'),
+        [filteredPromotions]
     );
 
     const displayedPromotions = useMemo(() => {
         if (activeTab === 'pending') {
             return pendingPromotions;
         }
-        return promotions;
-    }, [promotions, pendingPromotions, activeTab]);
+        if (activeTab === 'approved') {
+            return approvedPromotions;
+        }
+        if (activeTab === 'rejected') {
+            return rejectedPromotions;
+        }
+        return filteredPromotions;
+    }, [filteredPromotions, pendingPromotions, approvedPromotions, rejectedPromotions, activeTab]);
 
     const columns = [
         {
@@ -270,26 +275,6 @@ const AdminPromotionsPage = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    {record.status === 'ACTIVE' && (
-                        <Popconfirm
-                            title="Bạn có chắc chắn muốn vô hiệu hóa khuyến mãi này?"
-                            onConfirm={() => handleDelete(record.id)}
-                            okText="Vô hiệu hóa"
-                            cancelText="Hủy"
-                        >
-                            <Button
-                                type="primary"
-                                danger
-                                icon={<DeleteOutlined />}
-                                style={{
-                                    borderRadius: '4px',
-                                    fontWeight: 500
-                                }}
-                            >
-                                Vô hiệu hóa
-                            </Button>
-                        </Popconfirm>
-                    )}
                 </Space>
             ),
         },
@@ -301,23 +286,40 @@ const AdminPromotionsPage = () => {
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'center',
-                marginBottom: 24 
+                marginBottom: 24,
+                gap: 16,
+                flexWrap: 'wrap'
             }}>
                 <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#262626' }}>Quản lý Khuyến mãi</h1>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    size="large"
-                    onClick={handleAddPromotion}
-                    style={{
-                        height: '40px',
-                        fontSize: '15px',
-                        fontWeight: 500,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                >
-                    Tạo khuyến mãi mới
-                </Button>
+                <Space size={16} wrap>
+                    <Input.Search
+                        placeholder="Tìm theo tên hoặc mã khuyến mãi"
+                        allowClear
+                        size="large"
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        value={searchKeyword}
+                        style={{
+                            minWidth: 320,
+                            height: 40,
+                            borderRadius: 8,
+                        }}
+                        onSearch={(value) => setSearchKeyword(value)}
+                    />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        size="large"
+                        onClick={handleAddPromotion}
+                        style={{
+                            height: '40px',
+                            fontSize: '15px',
+                            fontWeight: 500,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        Tạo khuyến mãi mới
+                    </Button>
+                </Space>
             </div>
             <div
                 style={{
@@ -333,11 +335,19 @@ const AdminPromotionsPage = () => {
                     items={[
                         {
                             key: 'all',
-                            label: `Tất cả (${promotions.length})`,
+                            label: `Tất cả (${filteredPromotions.length})`,
                         },
                         {
                             key: 'pending',
                             label: `Chờ duyệt (${pendingPromotions.length})`,
+                        },
+                        {
+                            key: 'approved',
+                            label: `Đã duyệt (${approvedPromotions.length})`,
+                        },
+                        {
+                            key: 'rejected',
+                            label: `Đã từ chối (${rejectedPromotions.length})`,
                         },
                     ]}
                 />

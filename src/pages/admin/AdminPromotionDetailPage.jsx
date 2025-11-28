@@ -98,13 +98,19 @@ const AdminPromotionDetailPage = () => {
                                 Khuyến mãi #{promotion.id}
                             </span>
                         </Space>
-                        {promotion.approvedByName ? (
-                            <Tag color={promotion.isActive ? 'green' : 'red'} style={{ padding: '4px 12px' }}>
-                                {promotion.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
-                            </Tag>
-                        ) : (
+                        {promotion.status === 'PENDING' && (
                             <Tag color="gold" style={{ padding: '4px 12px' }}>
                                 Chờ duyệt
+                            </Tag>
+                        )}
+                        {promotion.status === 'ACTIVE' && (
+                            <Tag color="green" style={{ padding: '4px 12px' }}>
+                                Đang hoạt động
+                            </Tag>
+                        )}
+                        {promotion.status === 'REJECTED' && (
+                            <Tag color="red" style={{ padding: '4px 12px' }}>
+                                Đã từ chối
                             </Tag>
                         )}
                     </Space>
@@ -148,7 +154,7 @@ const AdminPromotionDetailPage = () => {
                         {promotion.approvedByName || 'Chưa duyệt'}
                     </Descriptions.Item>
                 </Descriptions>
-                {!promotion.approvedByName && (
+                {promotion.status === 'PENDING' && (
                     <Space style={{ marginTop: 24 }}>
                         <Button
                             type="primary"

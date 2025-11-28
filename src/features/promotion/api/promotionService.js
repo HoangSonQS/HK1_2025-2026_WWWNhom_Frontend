@@ -51,3 +51,24 @@ export const searchPromotions = (keyword) => {
   });
 };
 
+// Lấy danh sách khuyến mãi có log trong khoảng ngày
+export const getPromotionsByLogDateRange = (startDate, endDate) => {
+  return apiClient.get('promotion-logs/promotions-by-date-range', {
+    params: {
+      startDate,
+      endDate,
+    },
+  });
+};
+
+// Lấy chi tiết nhật ký khuyến mãi theo khoảng ngày (dựa trên log_time)
+export const getPromotionLogsByDateRange = (startDate, endDate) => {
+  return apiClient.get('promotion-logs/date-range', {
+    params: {
+      startDate,
+      endDate,
+    },
+  });
+};
+
+

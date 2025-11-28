@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Table, Button, Space, message, Tag, Tabs, Input } from 'antd';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Table, Button, Space, message, Tag, Tabs, Input, DatePicker, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { 
-    getAllPromotions
+    getAllPromotions,
+    getPromotionLogsByDateRange
 } from '../../features/promotion/api/promotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+
+const { RangePicker } = DatePicker;
+
+const getDefaultLogRange = () => [dayjs('2000-01-01'), dayjs()];
 
 const AdminPromotionsPage = () => {
     const [promotions, setPromotions] = useState([]);
@@ -15,6 +20,10 @@ const AdminPromotionsPage = () => {
     const [editingPromotionId, setEditingPromotionId] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [logDateRange, setLogDateRange] = useState([]);
+    const [logAction, setLogAction] = useState(null);
+    const [logEntries, setLogEntries] = useState([]);
+    const [logsLoading, setLogsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -91,6 +100,59 @@ const AdminPromotionsPage = () => {
         if (!endDate) return false;
         return dayjs(endDate).isBefore(dayjs(), 'day');
     };
+
+    const fetchLogsByRange = useCallback(async (rangeToUse, options = {}) => {
+        const { silent = false } = options;
+        if (!rangeToUse || rangeToUse.length !== 2) {
+            if (!silent) {
+                message.warning('Vui lòng chọn khoảng ngày để xem nhật ký khuyến mãi');
+            }
+            return;
+        }
+
+        const [start, end] = rangeToUse;
+        if (!start || !end) {
+            if (!silent) {
+                message.warning('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
+            }
+            return;
+        }
+
+        try {
+            setLogsLoading(true);
+            const startDate = start.format('YYYY-MM-DD');
+            const endDate = end.format('YYYY-MM-DD');
+            const response = await getPromotionLogsByDateRange(startDate, endDate);
+            setLogEntries(response.data || []);
+        } catch (error) {
+            console.error('Error loading promotion logs:', error);
+            if (!silent) {
+                message.error('Không thể tải nhật ký khuyến mãi theo khoảng thời gian đã chọn');
+            }
+        } finally {
+            setLogsLoading(false);
+        }
+    }, []);
+
+    const handleFetchLogs = (rangeOverride) => {
+        fetchLogsByRange(rangeOverride || logDateRange);
+    };
+
+    const filteredLogs = useMemo(() => {
+        if (!logAction) return logEntries;
+        return logEntries.filter((log) => log.action === logAction);
+    }, [logEntries, logAction]);
+
+    useEffect(() => {
+        if (activeTab === 'logs') {
+            let range = logDateRange;
+            if (!range || range.length !== 2) {
+                range = getDefaultLogRange();
+                setLogDateRange(range);
+            }
+            fetchLogsByRange(range, { silent: true });
+        }
+    }, [activeTab, logDateRange, fetchLogsByRange]);
     const filteredPromotions = useMemo(() => {
         const keyword = searchKeyword.trim().toLowerCase();
         if (!keyword) return promotions;
@@ -122,6 +184,9 @@ const AdminPromotionsPage = () => {
     );
 
     const displayedPromotions = useMemo(() => {
+        if (activeTab === 'active') {
+            return approvedPromotions;
+        }
         if (activeTab === 'pending') {
             return pendingPromotions;
         }
@@ -291,46 +356,106 @@ const AdminPromotionsPage = () => {
         },
     ];
 
+    const logColumns = [
+        {
+            title: 'ID khuyến mãi',
+            dataIndex: 'promotionId',
+            key: 'promotionId',
+            width: 120,
+        },
+        {
+            title: 'Mã khuyến mãi',
+            dataIndex: 'promotionCode',
+            key: 'promotionCode',
+            width: 150,
+            render: (code) => (
+                <Tag 
+                    color="blue" 
+                    style={{ 
+                        fontWeight: 'bold',
+                        fontSize: '13px',
+                        padding: '4px 12px',
+                        borderRadius: '4px'
+                    }}
+                >
+                    {code}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Hành động',
+            dataIndex: 'action',
+            key: 'action',
+            width: 140,
+            render: (action) => (
+                <Tag color="#722ed1" style={{ borderRadius: 6, padding: '2px 10px' }}>
+                    {action}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Người thực hiện',
+            dataIndex: 'actorName',
+            key: 'actorName',
+            width: 160,
+        },
+        {
+            title: 'Thời gian',
+            dataIndex: 'logTime',
+            key: 'logTime',
+            width: 200,
+            render: (time) => time ? dayjs(time).format('DD/MM/YYYY HH:mm:ss') : '-',
+        },
+    ];
+
     return (
         <div>
             <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
                 marginBottom: 24,
+                display: 'flex',
+                flexDirection: 'column',
                 gap: 16,
-                flexWrap: 'wrap'
             }}>
-                <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#262626' }}>Quản lý Khuyến mãi</h1>
-                <Space size={16} wrap>
-                    <Input.Search
-                        placeholder="Tìm theo tên hoặc mã khuyến mãi"
-                        allowClear
-                        size="large"
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        value={searchKeyword}
-                        style={{
-                            minWidth: 320,
-                            height: 40,
-                            borderRadius: 8,
-                        }}
-                        onSearch={(value) => setSearchKeyword(value)}
-                    />
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 12,
+                    flexWrap: 'wrap'
+                }}>
+                    <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600, color: '#262626' }}>
+                        Quản lý Khuyến mãi
+                    </h1>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
                         size="large"
                         onClick={handleAddPromotion}
                         style={{
-                            height: '40px',
+                            height: 44,
                             fontSize: '15px',
-                            fontWeight: 500,
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            fontWeight: 600,
+                            borderRadius: 10,
+                            boxShadow: '0 6px 18px rgba(22,119,255,0.2)'
                         }}
                     >
                         Tạo khuyến mãi mới
                     </Button>
-                </Space>
+                </div>
+                <Input.Search
+                    placeholder="Tìm theo tên hoặc mã khuyến mãi"
+                    allowClear
+                    size="large"
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    value={searchKeyword}
+                    style={{
+                        width: '100%',
+                        minWidth: 260,
+                        height: 44,
+                        borderRadius: 10,
+                    }}
+                    onSearch={(value) => setSearchKeyword(value)}
+                />
             </div>
             <div
                 style={{
@@ -349,6 +474,10 @@ const AdminPromotionsPage = () => {
                             label: `Tất cả (${filteredPromotions.length})`,
                         },
                         {
+                            key: 'active',
+                            label: `Đang hoạt động (${approvedPromotions.length})`,
+                        },
+                        {
                             key: 'pending',
                             label: `Chờ duyệt (${pendingPromotions.length})`,
                         },
@@ -364,8 +493,84 @@ const AdminPromotionsPage = () => {
                             key: 'paused',
                             label: `Đã xóa mềm (${pausedPromotions.length})`,
                         },
+                        {
+                            key: 'logs',
+                            label: 'Nhật ký hoạt động',
+                        },
                     ]}
                 />
+                {activeTab === 'logs' ? (
+                    <div>
+                        <div style={{
+                            display: 'flex',
+                            gap: 12,
+                            flexWrap: 'wrap',
+                            marginBottom: 16,
+                        }}>
+                            <RangePicker
+                                format="DD/MM/YYYY"
+                                size="large"
+                                allowClear
+                                onChange={(values) => setLogDateRange(values || [])}
+                                value={logDateRange}
+                                placeholder={['Từ ngày', 'Đến ngày']}
+                                style={{
+                                    flex: '1 1 260px',
+                                    minWidth: 240,
+                                    height: 44,
+                                    borderRadius: 10,
+                                    padding: '6px 12px'
+                                }}
+                            />
+                            <Select
+                                allowClear
+                                placeholder="Chọn hành động"
+                                size="large"
+                                value={logAction}
+                                onChange={(value) => setLogAction(value || null)}
+                                style={{
+                                    flex: '0 0 220px',
+                                    minWidth: 220,
+                                }}
+                                options={[
+                                    { label: 'CREATE', value: 'CREATE' },
+                                    { label: 'APPROVE', value: 'APPROVE' },
+                                    { label: 'REJECT', value: 'REJECT' },
+                                    { label: 'PAUSE', value: 'PAUSE' },
+                                    { label: 'RESUME', value: 'RESUME' },
+                                ]}
+                            />
+                            <Button
+                                onClick={handleFetchLogs}
+                                size="large"
+                                type="primary"
+                                style={{
+                                    flex: '0 0 auto',
+                                    height: 44,
+                                    borderRadius: 10,
+                                    fontWeight: 600,
+                                    padding: '0 28px'
+                                }}
+                            >
+                                Tải nhật ký
+                            </Button>
+                        </div>
+                        <Table
+                            columns={logColumns}
+                            dataSource={filteredLogs}
+                            rowKey={(record, index) => `${record.promotionId}-${record.action}-${record.logTime}-${index}`}
+                            loading={logsLoading}
+                            bordered
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Tổng ${total} nhật ký`,
+                                pageSizeOptions: ['10', '20', '50'],
+                            }}
+                            scroll={{ x: 900 }}
+                        />
+                    </div>
+                ) : (
                 <div style={{ overflowX: 'auto' }}>
                     <Table
                         columns={columns}
@@ -386,6 +591,7 @@ const AdminPromotionsPage = () => {
                         }}
                     />
                 </div>
+                )}
             </div>
             <PromotionModal
                 open={promotionModalOpen}

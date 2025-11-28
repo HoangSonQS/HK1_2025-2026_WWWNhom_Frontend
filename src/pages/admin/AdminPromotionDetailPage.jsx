@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, Descriptions, Space, Spin, Tag, message, Popconfirm } from 'antd';
-import { ArrowLeftOutlined, GiftOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, GiftOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getPromotionById, approvePromotion, deactivatePromotion } from '../../features/promotion/api/promotionService';
+import { getPromotionById, approvePromotion, deactivatePromotion, pausePromotion, resumePromotion } from '../../features/promotion/api/promotionService';
 
 const formatCurrency = (value) => {
     if (value === null || value === undefined) return 'Không giới hạn';
@@ -71,6 +71,34 @@ const AdminPromotionDetailPage = () => {
         }
     };
 
+    const handleSoftDelete = async () => {
+        setActionLoading(true);
+        try {
+            await pausePromotion(id);
+            message.success('Đã xóa mềm khuyến mãi và thông báo đến người dùng');
+            await loadPromotion();
+        } catch (error) {
+            console.error('Error soft deleting promotion:', error);
+            message.error(error.response?.data?.message || 'Không thể xóa mềm khuyến mãi');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleResume = async () => {
+        setActionLoading(true);
+        try {
+            await resumePromotion(id);
+            message.success('Khuyến mãi đã được kích hoạt lại');
+            await loadPromotion();
+        } catch (error) {
+            console.error('Error resuming promotion:', error);
+            message.error(error.response?.data?.message || 'Không thể kích hoạt lại khuyến mãi');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '50px' }} />
@@ -106,6 +134,11 @@ const AdminPromotionDetailPage = () => {
                         {promotion.status === 'ACTIVE' && (
                             <Tag color="green" style={{ padding: '4px 12px' }}>
                                 Đang hoạt động
+                            </Tag>
+                        )}
+                        {promotion.status === 'PAUSED' && (
+                            <Tag color="blue" style={{ padding: '4px 12px' }}>
+                                Đã xóa mềm
                             </Tag>
                         )}
                         {promotion.status === 'REJECTED' && (
@@ -178,6 +211,45 @@ const AdminPromotionDetailPage = () => {
                                 loading={actionLoading}
                             >
                                 Từ chối
+                            </Button>
+                        </Popconfirm>
+                    </Space>
+                )}
+                {promotion.status === 'ACTIVE' && (
+                    <Space style={{ marginTop: 24 }}>
+                        <Popconfirm
+                            title="Xóa mềm khuyến mãi"
+                            description="Khuyến mãi sẽ tạm dừng và người dùng sẽ nhận được thông báo. Bạn chắc chứ?"
+                            okText="Xóa mềm"
+                            cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
+                            onConfirm={handleSoftDelete}
+                        >
+                            <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                loading={actionLoading}
+                            >
+                                Xóa mềm
+                            </Button>
+                        </Popconfirm>
+                    </Space>
+                )}
+                {promotion.status === 'PAUSED' && (
+                    <Space style={{ marginTop: 24 }}>
+                        <Popconfirm
+                            title="Kích hoạt lại khuyến mãi"
+                            description="Khuyến mãi sẽ hoạt động trở lại và gửi thông báo đến người dùng. Tiếp tục?"
+                            okText="Kích hoạt lại"
+                            cancelText="Hủy"
+                            onConfirm={handleResume}
+                        >
+                            <Button
+                                type="primary"
+                                icon={<CheckOutlined />}
+                                loading={actionLoading}
+                            >
+                                Kích hoạt lại
                             </Button>
                         </Popconfirm>
                     </Space>

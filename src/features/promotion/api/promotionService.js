@@ -37,6 +37,14 @@ export const deactivatePromotion = (id) => {
   return apiClient.delete(`promotions/${id}`);
 };
 
+export const pausePromotion = (id) => {
+  return apiClient.put(`promotions/${id}/pause`);
+};
+
+export const resumePromotion = (id) => {
+  return apiClient.put(`promotions/${id}/resume`);
+};
+
 export const searchPromotions = (keyword) => {
   return apiClient.get('promotions/search', {
     params: { keyword }

@@ -116,6 +116,11 @@ const AdminPromotionsPage = () => {
         [filteredPromotions]
     );
 
+    const pausedPromotions = useMemo(
+        () => filteredPromotions.filter(promo => promo.status === 'PAUSED'),
+        [filteredPromotions]
+    );
+
     const displayedPromotions = useMemo(() => {
         if (activeTab === 'pending') {
             return pendingPromotions;
@@ -126,8 +131,11 @@ const AdminPromotionsPage = () => {
         if (activeTab === 'rejected') {
             return rejectedPromotions;
         }
+        if (activeTab === 'paused') {
+            return pausedPromotions;
+        }
         return filteredPromotions;
-    }, [filteredPromotions, pendingPromotions, approvedPromotions, rejectedPromotions, activeTab]);
+    }, [filteredPromotions, pendingPromotions, approvedPromotions, rejectedPromotions, pausedPromotions, activeTab]);
 
     const columns = [
         {
@@ -237,8 +245,11 @@ const AdminPromotionsPage = () => {
                         }
                         return <Tag color="green" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đang hoạt động</Tag>;
                     case 'REJECTED':
-                    default:
                         return <Tag color="red" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã từ chối</Tag>;
+                    case 'PAUSED':
+                        return <Tag color="blue" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã xóa mềm</Tag>;
+                    default:
+                        return <Tag color="#d9d9d9" style={{ borderRadius: '4px', padding: '2px 8px' }}>Không xác định</Tag>;
                 }
             },
         },
@@ -348,6 +359,10 @@ const AdminPromotionsPage = () => {
                         {
                             key: 'rejected',
                             label: `Đã từ chối (${rejectedPromotions.length})`,
+                        },
+                        {
+                            key: 'paused',
+                            label: `Đã xóa mềm (${pausedPromotions.length})`,
                         },
                     ]}
                 />

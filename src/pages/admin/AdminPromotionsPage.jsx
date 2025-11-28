@@ -387,11 +387,30 @@ const AdminPromotionsPage = () => {
             dataIndex: 'action',
             key: 'action',
             width: 140,
-            render: (action) => (
-                <Tag color="#722ed1" style={{ borderRadius: 6, padding: '2px 10px' }}>
-                    {action}
-                </Tag>
-            ),
+            render: (action) => {
+                const actionColors = {
+                    CREATE: { bg: '#f3e8ff', border: '#b37feb', text: '#531dab' },
+                    APPROVE: { bg: '#f6ffed', border: '#b7eb8f', text: '#237804' },
+                    REJECT: { bg: '#fff1f0', border: '#ffa39e', text: '#a8071a' },
+                    PAUSE: { bg: '#fff7e6', border: '#ffd591', text: '#ad4e00' },
+                    RESUME: { bg: '#e6fffb', border: '#87e8de', text: '#006d75' },
+                };
+                const colorConfig = actionColors[action] || { bg: '#f3e8ff', border: '#b37feb', text: '#531dab' };
+                return (
+                    <Tag
+                        style={{
+                            backgroundColor: colorConfig.bg,
+                            borderColor: colorConfig.border,
+                            color: colorConfig.text,
+                            borderRadius: 6,
+                            padding: '2px 10px',
+                            fontWeight: 600,
+                        }}
+                    >
+                        {action}
+                    </Tag>
+                );
+            },
         },
         {
             title: 'Người thực hiện',

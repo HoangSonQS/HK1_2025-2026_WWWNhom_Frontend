@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Popconfirm, message, Tag } from 'antd';
-import { PlusOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Table, Button, Space, Popconfirm, message, Tag, Tabs } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { 
     getAllPromotions, 
-    deactivatePromotion, 
-    approvePromotion
+    deactivatePromotion
 } from '../../features/promotion/api/promotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
@@ -15,6 +14,7 @@ const AdminPromotionsPage = () => {
     const [loading, setLoading] = useState(false);
     const [promotionModalOpen, setPromotionModalOpen] = useState(false);
     const [editingPromotionId, setEditingPromotionId] = useState(null);
+    const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -65,29 +65,6 @@ const AdminPromotionsPage = () => {
         }
     };
 
-    const handleApprove = async (id) => {
-        try {
-            const response = await approvePromotion(id);
-            const updatedPromotion = response.data;
-            message.success('Duyệt khuyến mãi thành công');
-            
-            // Cập nhật state
-            setPromotions(prevPromotions => {
-                const updated = prevPromotions.map(promo => 
-                    promo.id === id ? { ...promo, ...updatedPromotion } : promo
-                );
-                return updated.sort((a, b) => {
-                    const idA = a.id || 0;
-                    const idB = b.id || 0;
-                    return idA - idB;
-                });
-            });
-        } catch (error) {
-            console.error('Error approving promotion:', error);
-            message.error('Duyệt khuyến mãi thất bại');
-        }
-    };
-
     const handleAddPromotion = () => {
         setEditingPromotionId(null);
         setPromotionModalOpen(true);
@@ -135,13 +112,17 @@ const AdminPromotionsPage = () => {
         if (!endDate) return false;
         return dayjs(endDate).isBefore(dayjs(), 'day');
     };
+    const pendingPromotions = useMemo(
+        () => promotions.filter(promo => promo.status === 'PENDING'),
+        [promotions]
+    );
 
-    const isActive = (promotion) => {
-        if (!promotion.isActive) return false;
-        if (isExpired(promotion.endDate)) return false;
-        if (promotion.quantity <= 0) return false;
-        return true;
-    };
+    const displayedPromotions = useMemo(() => {
+        if (activeTab === 'pending') {
+            return pendingPromotions;
+        }
+        return promotions;
+    }, [promotions, pendingPromotions, activeTab]);
 
     const columns = [
         {
@@ -237,26 +218,23 @@ const AdminPromotionsPage = () => {
         },
         {
             title: 'Trạng thái',
+            dataIndex: 'status',
             key: 'status',
-            width: 140,
+            width: 160,
             render: (_, record) => {
-                const active = isActive(record);
                 const expired = isExpired(record.endDate);
-                const noQuantity = record.quantity <= 0;
-                
-                if (!record.isActive) {
-                    return <Tag color="red" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã vô hiệu hóa</Tag>;
+                switch (record.status) {
+                    case 'PENDING':
+                        return <Tag color="gold" style={{ borderRadius: '4px', padding: '2px 8px' }}>Chờ duyệt</Tag>;
+                    case 'ACTIVE':
+                        if (expired) {
+                            return <Tag color="orange" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã hết hạn</Tag>;
+                        }
+                        return <Tag color="green" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đang hoạt động</Tag>;
+                    case 'REJECTED':
+                    default:
+                        return <Tag color="red" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã từ chối</Tag>;
                 }
-                if (expired) {
-                    return <Tag color="orange" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã hết hạn</Tag>;
-                }
-                if (noQuantity) {
-                    return <Tag color="orange" style={{ borderRadius: '4px', padding: '2px 8px' }}>Hết mã</Tag>;
-                }
-                if (!record.approvedByName) {
-                    return <Tag color="gold" style={{ borderRadius: '4px', padding: '2px 8px' }}>Chờ duyệt</Tag>;
-                }
-                return <Tag color="green" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đang hoạt động</Tag>;
             },
         },
         {
@@ -292,28 +270,7 @@ const AdminPromotionsPage = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    {!record.approvedByName && (
-                        <Popconfirm
-                            title="Bạn có chắc chắn muốn duyệt khuyến mãi này?"
-                            onConfirm={() => handleApprove(record.id)}
-                            okText="Duyệt"
-                            cancelText="Hủy"
-                        >
-                            <Button
-                                type="primary"
-                                icon={<CheckOutlined />}
-                                style={{ 
-                                    backgroundColor: '#52c41a', 
-                                    borderColor: '#52c41a',
-                                    borderRadius: '4px',
-                                    fontWeight: 500
-                                }}
-                            >
-                                Duyệt
-                            </Button>
-                        </Popconfirm>
-                    )}
-                    {record.isActive && (
+                    {record.status === 'ACTIVE' && (
                         <Popconfirm
                             title="Bạn có chắc chắn muốn vô hiệu hóa khuyến mãi này?"
                             onConfirm={() => handleDelete(record.id)}
@@ -362,31 +319,48 @@ const AdminPromotionsPage = () => {
                     Tạo khuyến mãi mới
                 </Button>
             </div>
-            <div style={{
-                overflowX: 'auto',
-                backgroundColor: '#fff',
-                borderRadius: '8px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
-                padding: '1px'
-            }}>
-                <Table
-                    columns={columns}
-                    dataSource={promotions}
-                    rowKey="id"
-                    loading={loading}
-                    bordered
-                    scroll={{ x: 1540 }}
-                    style={{
-                        minWidth: '100%'
-                    }}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng ${total} khuyến mãi`,
-                        showQuickJumper: true,
-                        pageSizeOptions: ['10', '20', '50', '100'],
-                    }}
+            <div
+                style={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                    padding: '16px',
+                }}
+            >
+                <Tabs
+                    activeKey={activeTab}
+                    onChange={setActiveTab}
+                    items={[
+                        {
+                            key: 'all',
+                            label: `Tất cả (${promotions.length})`,
+                        },
+                        {
+                            key: 'pending',
+                            label: `Chờ duyệt (${pendingPromotions.length})`,
+                        },
+                    ]}
                 />
+                <div style={{ overflowX: 'auto' }}>
+                    <Table
+                        columns={columns}
+                        dataSource={displayedPromotions}
+                        rowKey="id"
+                        loading={loading}
+                        bordered
+                        scroll={{ x: 1540 }}
+                        style={{
+                            minWidth: '100%',
+                        }}
+                        pagination={{
+                            pageSize: 10,
+                            showSizeChanger: true,
+                            showTotal: (total) => `Tổng ${total} khuyến mãi`,
+                            showQuickJumper: true,
+                            pageSizeOptions: ['10', '20', '50', '100'],
+                        }}
+                    />
+                </div>
             </div>
             <PromotionModal
                 open={promotionModalOpen}

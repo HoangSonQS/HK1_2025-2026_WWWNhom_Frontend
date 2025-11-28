@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, Descriptions, Space, Spin, Tag, message } from 'antd';
-import { ArrowLeftOutlined, GiftOutlined } from '@ant-design/icons';
+import { Button, Card, Descriptions, Space, Spin, Tag, message, Popconfirm } from 'antd';
+import { ArrowLeftOutlined, GiftOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getPromotionById } from '../../features/promotion/api/promotionService';
+import { getPromotionById, approvePromotion, deactivatePromotion } from '../../features/promotion/api/promotionService';
 
 const formatCurrency = (value) => {
     if (value === null || value === undefined) return 'Không giới hạn';
@@ -23,6 +23,7 @@ const AdminPromotionDetailPage = () => {
     const navigate = useNavigate();
     const [promotion, setPromotion] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         loadPromotion();
@@ -39,6 +40,34 @@ const AdminPromotionDetailPage = () => {
             navigate('/admin/promotions');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleApprove = async () => {
+        setActionLoading(true);
+        try {
+            await approvePromotion(id);
+            message.success('Duyệt khuyến mãi thành công');
+            await loadPromotion();
+        } catch (error) {
+            console.error('Error approving promotion:', error);
+            message.error(error.response?.data?.message || 'Không thể duyệt khuyến mãi');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleReject = async () => {
+        setActionLoading(true);
+        try {
+            await deactivatePromotion(id);
+            message.success('Đã từ chối khuyến mãi');
+            await loadPromotion();
+        } catch (error) {
+            console.error('Error rejecting promotion:', error);
+            message.error(error.response?.data?.message || 'Không thể từ chối khuyến mãi');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -69,9 +98,15 @@ const AdminPromotionDetailPage = () => {
                                 Khuyến mãi #{promotion.id}
                             </span>
                         </Space>
-                        <Tag color={promotion.isActive ? 'green' : 'red'} style={{ padding: '4px 12px' }}>
-                            {promotion.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
-                        </Tag>
+                        {promotion.approvedByName ? (
+                            <Tag color={promotion.isActive ? 'green' : 'red'} style={{ padding: '4px 12px' }}>
+                                {promotion.isActive ? 'Đang hoạt động' : 'Đã vô hiệu hóa'}
+                            </Tag>
+                        ) : (
+                            <Tag color="gold" style={{ padding: '4px 12px' }}>
+                                Chờ duyệt
+                            </Tag>
+                        )}
                     </Space>
                 }
             >
@@ -113,6 +148,34 @@ const AdminPromotionDetailPage = () => {
                         {promotion.approvedByName || 'Chưa duyệt'}
                     </Descriptions.Item>
                 </Descriptions>
+                {!promotion.approvedByName && (
+                    <Space style={{ marginTop: 24 }}>
+                        <Button
+                            type="primary"
+                            icon={<CheckOutlined />}
+                            onClick={handleApprove}
+                            loading={actionLoading}
+                        >
+                            Duyệt khuyến mãi
+                        </Button>
+                        <Popconfirm
+                            title="Từ chối khuyến mãi"
+                            description="Bạn có chắc chắn muốn từ chối khuyến mãi này?"
+                            okText="Từ chối"
+                            cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
+                            onConfirm={handleReject}
+                        >
+                            <Button
+                                danger
+                                icon={<CloseOutlined />}
+                                loading={actionLoading}
+                            >
+                                Từ chối
+                            </Button>
+                        </Popconfirm>
+                    </Space>
+                )}
             </Card>
         </div>
     );

@@ -160,6 +160,21 @@ const Header = () => {
     return match ? parseInt(match[1], 10) : null;
   };
 
+  const isPromotionNotification = (title = "", content = "") => {
+    const normalizedTitle = title.toLowerCase();
+    const normalizedContent = (content || "").toLowerCase();
+    return (
+      normalizedTitle.includes("khuyến mãi") ||
+      normalizedTitle.includes("promotion") ||
+      normalizedTitle.includes("mã giảm giá") ||
+      normalizedTitle.includes("voucher") ||
+      normalizedContent.includes("khuyến mãi") ||
+      normalizedContent.includes("promotion") ||
+      normalizedContent.includes("mã giảm giá") ||
+      normalizedContent.includes("voucher")
+    );
+  };
+
   const notificationContent = (
     <div style={{ width: 360, maxHeight: 500 }}>
       <div
@@ -204,7 +219,7 @@ const Header = () => {
           renderItem={(item) => {
             const orderId = extractOrderId(item.title, item.content);
             return (
-              <List.Item
+                <List.Item
                 style={{
                   padding: "12px 0",
                   backgroundColor: "#fff",
@@ -236,14 +251,20 @@ const Header = () => {
                   setNotificationPopoverOpen(false);
 
                   // Nếu có orderId, chuyển đến chi tiết đơn hàng
-                  if (orderId) {
-                    navigate(`/orders/${orderId}`);
-                  } else {
-                    // Nếu không có orderId, hiển thị modal chi tiết thông báo
-                    // Cập nhật selectedNotification với isRead = true
-                    setSelectedNotification({ ...item, isRead: true });
-                    setNotificationModalVisible(true);
-                  }
+                if (orderId) {
+                  navigate(`/orders/${orderId}`);
+                  return;
+                }
+
+                if (isPromotionNotification(item.title, item.content)) {
+                  setNotificationPopoverOpen(false);
+                  navigate(`${ROUTES.NOTIFICATIONS}?tab=promotions`);
+                  return;
+                }
+
+                // Nếu không thuộc promotion, hiển thị modal chi tiết thông báo
+                setSelectedNotification({ ...item, isRead: true });
+                setNotificationModalVisible(true);
                 }}
               >
                 {item.isRead !== true && (

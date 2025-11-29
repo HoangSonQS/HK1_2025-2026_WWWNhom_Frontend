@@ -28,6 +28,7 @@ export const ROUTES = {
   MY_ORDERS: '/my-orders',
   ORDER_DETAIL: '/orders/:id',
   NOTIFICATIONS: '/notifications',
+  PAYMENT_RESULT: '/payment-result',
 };
 
 export const STORAGE_KEYS = {

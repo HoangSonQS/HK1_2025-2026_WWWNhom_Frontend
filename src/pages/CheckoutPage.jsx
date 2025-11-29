@@ -13,13 +13,19 @@ import {
   Input,
   Radio,
   Form,
+  Modal,
+  Checkbox,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { getCart } from "../features/cart/api/cartService";
 import { createOrder } from "../features/order/api/orderService";
-import { getMyAddresses } from "../features/address/api/addressService";
+import {
+  getMyAddresses,
+  addAddress,
+} from "../features/address/api/addressService";
 import { validatePromotionCode } from "../features/promotion/api/promotionService";
+import { createVnPayPayment } from "../features/payment/api/paymentService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
 import "../styles/cart.css";
@@ -30,6 +36,7 @@ const { Title, Text } = Typography;
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [addressForm] = Form.useForm();
   const [cart, setCart] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
@@ -42,6 +49,8 @@ const CheckoutPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [finalTotal, setFinalTotal] = useState(0);
+  const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
+  const [creatingAddress, setCreatingAddress] = useState(false);
 
   useEffect(() => {
     loadCart();
@@ -94,6 +103,63 @@ const CheckoutPage = () => {
       }
     } catch (error) {
       console.error("Error loading addresses:", error);
+    }
+  };
+
+  const openAddAddressModal = () => {
+    addressForm.resetFields();
+    addressForm.setFieldsValue({
+      addressType: "HOME",
+      isDefault: addresses.length === 0,
+    });
+    setIsAddressModalVisible(true);
+  };
+
+  const handleCancelAddAddress = () => {
+    setIsAddressModalVisible(false);
+  };
+
+  const handleSubmitNewAddress = async () => {
+    try {
+      const values = await addressForm.validateFields();
+      const payload = {
+        addressType: values.addressType,
+        isDefault: values.isDefault || false,
+        street: values.street || "",
+        ward: values.ward || "",
+        district: values.district || "",
+        city: values.city || "",
+        phoneNumber: values.phoneNumber || "",
+        recipientName: values.recipientName || "",
+      };
+
+      setCreatingAddress(true);
+      const response = await addAddress(payload);
+      const newAddress = response.data;
+
+      message.success("Thêm địa chỉ thành công");
+
+      // Reload danh sách địa chỉ để đồng bộ
+      await loadAddresses();
+
+      if (newAddress?.id) {
+        setSelectedAddressId(newAddress.id);
+        form.setFieldsValue({ addressId: newAddress.id });
+      }
+
+      setIsAddressModalVisible(false);
+    } catch (error) {
+      if (error?.errorFields) {
+        // Lỗi validate form antd
+        return;
+      }
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể thêm địa chỉ, vui lòng thử lại";
+      message.error(errorMessage);
+    } finally {
+      setCreatingAddress(false);
     }
   };
 
@@ -163,20 +229,45 @@ const CheckoutPage = () => {
         promotionCode: appliedPromotion ? appliedPromotion.code : null,
       };
 
+      console.log("Creating order with data:", orderData);
       const response = await createOrder(orderData);
       const order = response.data;
+      console.log("Order created successfully:", order);
 
-      message.success("Đặt hàng thành công!");
-
-      // Trigger event để cập nhật cart count trong Header
+      // Trigger event để cập nhật cart count và thông báo trong Header ngay khi tạo đơn
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-
-      // Trigger event để cập nhật notification count trong Header
       window.dispatchEvent(new CustomEvent("notificationUpdated"));
 
-      // Chuyển đến trang chủ
-      navigate(ROUTES.HOME);
+      if (paymentMethod === "VNPAY") {
+        try {
+          message.loading("Đang chuyển sang cổng thanh toán VNPay...", 1.5);
+          console.log("Creating VNPay payment for order:", order.id);
+          const paymentResponse = await createVnPayPayment(order.id);
+          console.log("Payment response:", paymentResponse);
+          const paymentUrl = paymentResponse.data?.paymentUrl;
+          if (paymentUrl) {
+            console.log("Redirecting to VNPay:", paymentUrl);
+            window.location.href = paymentUrl;
+            return;
+          } else {
+            message.error("Không lấy được liên kết thanh toán, vui lòng thử lại sau.");
+            console.error("No paymentUrl in response:", paymentResponse);
+          }
+        } catch (paymentError) {
+          console.error("Error creating VNPay payment:", paymentError);
+          const paymentErrorMessage = 
+            paymentError.response?.data?.message || 
+            paymentError.message || 
+            "Không thể tạo liên kết thanh toán VNPay";
+          message.error(paymentErrorMessage);
+        }
+      } else {
+        message.success("Đặt hàng thành công!");
+        navigate(ROUTES.HOME);
+      }
     } catch (error) {
+      console.error("Error in handlePlaceOrder:", error);
+      console.error("Error response:", error.response);
       const errorMessage =
         error.response?.data?.message || error.message || "Không thể đặt hàng";
       message.error(errorMessage);
@@ -357,19 +448,9 @@ const CheckoutPage = () => {
                       </Space>
                     </Radio.Group>
                   </Form.Item>
-                  {addresses.length === 0 && (
-                    <Button
-                      type="link"
-                      onClick={() => {
-                        // TODO: Navigate to add address page
-                        message.info(
-                          "Tính năng thêm địa chỉ đang được phát triển"
-                        );
-                      }}
-                    >
-                      + Thêm địa chỉ mới
-                    </Button>
-                  )}
+                  <Button type="link" onClick={openAddAddressModal}>
+                    + Thêm địa chỉ mới
+                  </Button>
                 </Card>
 
                 {/* Phương thức thanh toán */}
@@ -379,7 +460,10 @@ const CheckoutPage = () => {
                 >
                   <Radio.Group
                     value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    onChange={(e) => {
+                      console.log("Payment method changed to:", e.target.value);
+                      setPaymentMethod(e.target.value);
+                    }}
                   >
                     <Space direction="vertical">
                       <Radio value="CASH">Thanh toán khi nhận hàng (COD)</Radio>
@@ -491,6 +575,85 @@ const CheckoutPage = () => {
               </div>
             </div>
           </Form>
+
+          <Modal
+            title="Thêm địa chỉ giao hàng"
+            open={isAddressModalVisible}
+            onOk={handleSubmitNewAddress}
+            onCancel={handleCancelAddAddress}
+            confirmLoading={creatingAddress}
+            okText="Lưu địa chỉ"
+            cancelText="Hủy"
+          >
+            <Form
+              form={addressForm}
+              layout="vertical"
+              initialValues={{ addressType: "HOME" }}
+            >
+              <Form.Item
+                label="Tên người nhận"
+                name="recipientName"
+                rules={[
+                  { required: true, message: "Vui lòng nhập tên người nhận" },
+                ]}
+              >
+                <Input placeholder="Ví dụ: Nguyễn Văn A" />
+              </Form.Item>
+
+              <Form.Item
+                label="Số điện thoại"
+                name="phoneNumber"
+                rules={[
+                  { required: true, message: "Vui lòng nhập số điện thoại" },
+                ]}
+              >
+                <Input placeholder="Ví dụ: 0901234567" />
+              </Form.Item>
+
+              <Form.Item
+                label="Loại địa chỉ"
+                name="addressType"
+                rules={[
+                  { required: true, message: "Vui lòng chọn loại địa chỉ" },
+                ]}
+              >
+                <Radio.Group>
+                  <Radio value="HOME">Nhà riêng</Radio>
+                  <Radio value="OFFICE">Cơ quan</Radio>
+                  <Radio value="OTHER">Khác</Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              <Form.Item
+                label="Địa chỉ (số nhà, tên đường)"
+                name="street"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng nhập số nhà, tên đường",
+                  },
+                ]}
+              >
+                <Input placeholder="Ví dụ: 123 Lê Lợi" />
+              </Form.Item>
+
+              <Form.Item label="Phường/Xã" name="ward">
+                <Input placeholder="Ví dụ: Phường 1" />
+              </Form.Item>
+
+              <Form.Item label="Quận/Huyện" name="district">
+                <Input placeholder="Ví dụ: Quận 1" />
+              </Form.Item>
+
+              <Form.Item label="Tỉnh/Thành phố" name="city">
+                <Input placeholder="Ví dụ: TP. Hồ Chí Minh" />
+              </Form.Item>
+
+              <Form.Item name="isDefault" valuePropName="checked">
+                <Checkbox>Đặt làm địa chỉ mặc định</Checkbox>
+              </Form.Item>
+            </Form>
+          </Modal>
         </div>
       </Content>
     </Layout>

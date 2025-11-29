@@ -76,3 +76,25 @@ export const updateAccountById = (accountId, accountData) => {
     });
 };
 
+/**
+ * Tạo tài khoản nhân viên mới (chỉ dành cho admin)
+ */
+export const createStaffAccount = (accountData) => {
+    return apiClient.post('admin/accounts', accountData, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+};
+
+/**
+ * Cập nhật roles của tài khoản (chỉ dành cho admin)
+ */
+export const updateAccountRoles = (accountId, roles) => {
+    return apiClient.put(`admin/accounts/${accountId}/roles`, { roles }, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+};
+

@@ -9,6 +9,7 @@ import {
   LogoutOutlined,
   ShoppingOutlined,
   ShopOutlined,
+  GiftOutlined,
   AppstoreOutlined,
   InboxOutlined,
 } from "@ant-design/icons";
@@ -77,6 +78,12 @@ const AdminDashboard = () => {
       onClick: () => navigate("/admin/orders"),
     },
     {
+      key: '/admin/promotions',
+      icon: <GiftOutlined />,
+      label: 'Quản lý Khuyến mãi',
+      onClick: () => navigate('/admin/promotions')
+    },
+    {
       key: "/admin/suppliers",
       icon: <ShopOutlined />,
       label: "Quản lý Nhà cung cấp",
@@ -104,6 +111,7 @@ const AdminDashboard = () => {
     if (path.startsWith("/admin/categories")) return "/admin/categories";
     if (path.startsWith("/admin/accounts")) return "/admin/accounts";
     if (path.startsWith("/admin/orders")) return "/admin/orders";
+    if (path.startsWith('/admin/promotions')) return '/admin/promotions';
     if (path.startsWith("/admin/suppliers")) return "/admin/suppliers";
     if (path.startsWith("/admin/import-stocks")) return "/admin/import-stocks";
     return "/admin/dashboard";

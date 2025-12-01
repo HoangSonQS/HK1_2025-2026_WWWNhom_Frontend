@@ -22,7 +22,7 @@ import {
   ShoppingOutlined,
   GiftOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import {
   getMyNotifications,
@@ -42,11 +42,20 @@ const NotificationsPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState("orders");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "orders";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams, activeTab]);
 
   const loadNotifications = async () => {
     setLoading(true);
@@ -304,6 +313,11 @@ const NotificationsPage = () => {
     );
   }
 
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    navigate(`${ROUTES.NOTIFICATIONS}?tab=${key}`, { replace: true });
+  };
+
   return (
     <Layout className="cart-layout">
       <Header />
@@ -343,7 +357,7 @@ const NotificationsPage = () => {
             <Card>
               <Tabs
                 activeKey={activeTab}
-                onChange={setActiveTab}
+                onChange={handleTabChange}
                 items={[
                   {
                     key: "orders",

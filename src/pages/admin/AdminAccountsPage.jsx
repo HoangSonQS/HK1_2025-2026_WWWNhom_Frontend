@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Switch, message, Tag, Modal, Form, Input } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
-import { getAllAccounts, updateAccountStatus, getMyAccount, updateAccount, updateAccountById } from '../../features/user/api/userService';
+import { Table, Button, Space, Switch, message, Tag, Modal, Form, Input, Select, Checkbox } from 'antd';
+import { EditOutlined, PlusOutlined, UserAddOutlined } from '@ant-design/icons';
+import { getAllAccounts, updateAccountStatus, getMyAccount, updateAccount, updateAccountById, createStaffAccount, updateAccountRoles } from '../../features/user/api/userService';
 import { decodeJWT, checkAdminRole } from '../../utils/jwt';
+
+const { Option } = Select;
 
 const AdminAccountsPage = () => {
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [editModalVisible, setEditModalVisible] = useState(false);
+    const [createModalVisible, setCreateModalVisible] = useState(false);
+    const [rolesModalVisible, setRolesModalVisible] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
     const [form] = Form.useForm();
+    const [createForm] = Form.useForm();
+    const [rolesForm] = Form.useForm();
     const [updatingStatus, setUpdatingStatus] = useState(new Set());
+
+    // Danh sách roles có thể gán
+    const AVAILABLE_ROLES = [
+        { value: 'ADMIN', label: 'Admin', color: 'red' },
+        { value: 'SELLER_STAFF', label: 'Nhân viên bán hàng', color: 'blue' },
+        { value: 'WAREHOUSE_STAFF', label: 'Nhân viên kho', color: 'orange' },
+        { value: 'CUSTOMER', label: 'Khách hàng', color: 'green' }
+    ];
 
     useEffect(() => {
         loadAccounts();
@@ -20,29 +34,20 @@ const AdminAccountsPage = () => {
         setLoading(true);
         try {
             const response = await getAllAccounts();
-            console.log('🔍 getAllAccounts response:', response);
-            console.log('🔍 Response data:', response.data);
-            
-            // Xử lý response có thể là array trực tiếp hoặc trong data
             const accountsData = Array.isArray(response.data) 
                 ? response.data 
                 : (response.data?.data || response.data || []);
             
-            // Sắp xếp theo ID tăng dần
             const sortedAccounts = [...accountsData].sort((a, b) => {
                 const idA = a.id || 0;
                 const idB = b.id || 0;
                 return idA - idB;
             });
             
-            console.log('🔍 Processed accounts:', sortedAccounts);
             setAccounts(sortedAccounts);
         } catch (error) {
             console.error('❌ Error loading accounts:', error);
-            console.error('❌ Error response:', error.response);
-            const errorMsg = error.response?.data?.message || 
-                           error.response?.data?.error || 
-                           'Không thể tải danh sách tài khoản';
+            const errorMsg = error.response?.data?.message || 'Không thể tải danh sách tài khoản';
             message.error(errorMsg);
         } finally {
             setLoading(false);
@@ -50,10 +55,7 @@ const AdminAccountsPage = () => {
     };
 
     const handleStatusChange = async (accountId, isActive) => {
-        // Ngăn không cho trigger nhiều lần cùng lúc
-        if (updatingStatus.has(accountId)) {
-            return;
-        }
+        if (updatingStatus.has(accountId)) return;
         
         setUpdatingStatus(prev => new Set(prev).add(accountId));
         
@@ -63,18 +65,10 @@ const AdminAccountsPage = () => {
             
             message.success(isActive ? 'Kích hoạt tài khoản thành công' : 'Vô hiệu hóa tài khoản thành công');
             
-            // Cập nhật trực tiếp state với dữ liệu từ database để đảm bảo chính xác
             setAccounts(prevAccounts => 
                 prevAccounts.map(account => 
                     account.id === accountId 
-                        ? { 
-                            ...account, 
-                            ...updatedAccount,
-                            // Đảm bảo giữ nguyên các field cần thiết
-                            id: account.id,
-                            username: account.username,
-                            roles: account.roles || updatedAccount.roles
-                        } 
+                        ? { ...account, ...updatedAccount } 
                         : account
                 )
             );
@@ -94,14 +88,12 @@ const AdminAccountsPage = () => {
         try {
             let account;
             if (accountId) {
-                // Admin cập nhật account khác - lấy từ danh sách
                 account = accounts.find(acc => acc.id === accountId);
                 if (!account) {
                     message.error('Không tìm thấy tài khoản');
                     return;
                 }
             } else {
-                // Cập nhật tài khoản của chính mình
                 const response = await getMyAccount();
                 account = response.data;
             }
@@ -125,21 +117,17 @@ const AdminAccountsPage = () => {
             let updatedAccount = null;
             
             if (editingAccount && editingAccount.id) {
-                // Kiểm tra xem có phải admin đang cập nhật account khác không
                 const jwtData = decodeJWT();
                 const isMyAccount = jwtData && jwtData.sub === editingAccount.username;
                 
                 if (isMyAccount) {
-                    // Cập nhật tài khoản của chính mình
                     const response = await updateAccount(values);
                     updatedAccount = response.data;
                 } else {
-                    // Admin cập nhật account khác
                     const response = await updateAccountById(editingAccount.id, values);
                     updatedAccount = response.data;
                 }
             } else {
-                // Fallback: cập nhật tài khoản của chính mình
                 const response = await updateAccount(values);
                 updatedAccount = response.data;
             }
@@ -148,20 +136,11 @@ const AdminAccountsPage = () => {
             setEditModalVisible(false);
             form.resetFields();
             
-            // Cập nhật account trong state với dữ liệu từ database
             if (updatedAccount && editingAccount && editingAccount.id) {
                 setAccounts(prevAccounts => 
                     prevAccounts.map(account => 
                         account.id === editingAccount.id 
-                            ? { 
-                                ...account, 
-                                ...updatedAccount,
-                                // Đảm bảo giữ nguyên các field có thể không có trong response
-                                id: account.id,
-                                username: account.username,
-                                roles: account.roles,
-                                isActive: account.isActive
-                            } 
+                            ? { ...account, ...updatedAccount } 
                             : account
                     )
                 );
@@ -175,29 +154,72 @@ const AdminAccountsPage = () => {
         }
     };
 
-    const formatRoles = (roles) => {
-        if (!roles || roles.length === 0) return '-';
-        return Array.isArray(roles) ? roles.join(', ') : roles;
+    const handleCreateStaff = () => {
+        setEditingAccount(null);
+        createForm.resetFields();
+        // Reset form với giá trị mặc định
+        setTimeout(() => {
+            createForm.setFieldsValue({
+                username: '',
+                password: '',
+                email: '',
+                roles: []
+            });
+        }, 0);
+        setCreateModalVisible(true);
     };
 
-    const getRoleColor = (role) => {
-        const roleLower = role?.toLowerCase();
-        switch (roleLower) {
-            case 'admin':
-                return 'red';
-            case 'seller':
-                return 'blue';
-            case 'warehouse':
-                return 'orange';
-            case 'customer':
-                return 'green';
-            default:
-                return 'default';
+    const handleCreateSubmit = async (values) => {
+        try {
+            const response = await createStaffAccount(values);
+            message.success('Tạo tài khoản nhân viên thành công!');
+            setCreateModalVisible(false);
+            createForm.resetFields();
+            loadAccounts();
+        } catch (error) {
+            console.error('Error creating staff account:', error);
+            const errorMsg = error.response?.data?.message || 'Tạo tài khoản thất bại';
+            message.error(errorMsg);
         }
     };
 
-    const isAdmin = () => {
-        return checkAdminRole();
+    const handleEditRoles = (account) => {
+        setEditingAccount(account);
+        const rolesArray = Array.isArray(account.roles) 
+            ? account.roles 
+            : Array.from(account.roles || []);
+        rolesForm.setFieldsValue({
+            roles: rolesArray
+        });
+        setRolesModalVisible(true);
+    };
+
+    const handleUpdateRoles = async (values) => {
+        try {
+            const response = await updateAccountRoles(editingAccount.id, values.roles);
+            message.success('Cập nhật vai trò thành công!');
+            setRolesModalVisible(false);
+            rolesForm.resetFields();
+            
+            setAccounts(prevAccounts => 
+                prevAccounts.map(account => 
+                    account.id === editingAccount.id 
+                        ? { ...account, roles: values.roles } 
+                        : account
+                )
+            );
+            setEditingAccount(null);
+        } catch (error) {
+            console.error('Error updating roles:', error);
+            const errorMsg = error.response?.data?.message || 'Cập nhật vai trò thất bại';
+            message.error(errorMsg);
+        }
+    };
+
+    const getRoleColor = (role) => {
+        const roleUpper = role?.toUpperCase();
+        const roleConfig = AVAILABLE_ROLES.find(r => r.value === roleUpper);
+        return roleConfig?.color || 'default';
     };
 
     const columns = [
@@ -236,10 +258,9 @@ const AdminAccountsPage = () => {
             title: 'Vai trò',
             dataIndex: 'roles',
             key: 'roles',
-            render: (roles) => {
+            render: (roles, record) => {
                 if (!roles) return '-';
                 
-                // Xử lý roles có thể là Set, Array, hoặc object
                 let roleArray = [];
                 if (Array.isArray(roles)) {
                     roleArray = roles;
@@ -252,21 +273,27 @@ const AdminAccountsPage = () => {
                 if (roleArray.length === 0) return '-';
                 
                 return (
-                    <Space>
+                    <Space direction="vertical" size={4}>
+                        <Space wrap>
                         {roleArray.map((role, index) => (
                             <Tag 
                                 key={index} 
                                 color={getRoleColor(role)}
-                                style={{
-                                    textTransform: 'uppercase',
-                                    fontWeight: 'bold',
-                                    letterSpacing: '0.5px',
-                                    fontSize: '12px'
-                                }}
                             >
                                 {role}
                             </Tag>
                         ))}
+                        </Space>
+                        {checkAdminRole() && (
+                            <Button 
+                                type="link" 
+                                size="small" 
+                                onClick={() => handleEditRoles(record)}
+                                style={{ padding: 0, height: 'auto' }}
+                            >
+                                Sửa vai trò
+                            </Button>
+                        )}
                     </Space>
                 );
             },
@@ -289,10 +316,6 @@ const AdminAccountsPage = () => {
                                 handleStatusChange(record.id, checked);
                             }
                         }}
-                        style={{ 
-                            width: '40px',
-                            minWidth: '40px'
-                        }}
                     />
                 );
             },
@@ -304,15 +327,15 @@ const AdminAccountsPage = () => {
             render: (_, record) => {
                 const jwtData = decodeJWT();
                 const isMyAccount = jwtData && jwtData.sub === record.username;
-                const userIsAdmin = isAdmin();
+                const userIsAdmin = checkAdminRole();
                 
-                // Admin có thể cập nhật tất cả account, user thường chỉ cập nhật account của mình
                 if (userIsAdmin || isMyAccount) {
                     return (
                         <Button
                             type="primary"
                             icon={<EditOutlined />}
                             onClick={() => handleEdit(record.id)}
+                            size="small"
                         >
                             Cập nhật
                         </Button>
@@ -325,7 +348,25 @@ const AdminAccountsPage = () => {
 
     return (
         <div>
-            <h1 style={{ marginBottom: 24 }}>Quản lý Tài khoản</h1>
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                marginBottom: 24 
+            }}>
+                <h1 style={{ margin: 0 }}>Quản lý Tài khoản</h1>
+                {checkAdminRole() && (
+                    <Button
+                        type="primary"
+                        icon={<UserAddOutlined />}
+                        size="large"
+                        onClick={handleCreateStaff}
+                    >
+                        Tạo tài khoản nhân viên
+                    </Button>
+                )}
+            </div>
+
             <Table
                 columns={columns}
                 dataSource={accounts}
@@ -338,8 +379,9 @@ const AdminAccountsPage = () => {
                 }}
             />
 
+            {/* Modal Cập nhật thông tin */}
             <Modal
-                title="Cập nhật Tài khoản"
+                title="Cập nhật Thông tin tài khoản"
                 open={editModalVisible}
                 onCancel={() => {
                     setEditModalVisible(false);
@@ -354,9 +396,7 @@ const AdminAccountsPage = () => {
                     layout="vertical"
                     onFinish={handleUpdateAccount}
                 >
-                    <Form.Item
-                        label="Tên đăng nhập"
-                    >
+                    <Form.Item label="Tên đăng nhập">
                         <Input 
                             value={editingAccount?.username} 
                             disabled 
@@ -371,34 +411,163 @@ const AdminAccountsPage = () => {
                             { type: 'email', message: 'Email không hợp lệ!' }
                         ]}
                     >
-                        <Input placeholder="Email" />
+                        <Input placeholder="Email" size="large" />
                     </Form.Item>
-                    <Form.Item
-                        name="firstName"
-                        label="Họ"
-                    >
-                        <Input placeholder="Họ" />
+                    <Form.Item name="firstName" label="Họ">
+                        <Input placeholder="Họ" size="large" />
                     </Form.Item>
-                    <Form.Item
-                        name="lastName"
-                        label="Tên"
-                    >
-                        <Input placeholder="Tên" />
+                    <Form.Item name="lastName" label="Tên">
+                        <Input placeholder="Tên" size="large" />
                     </Form.Item>
-                    <Form.Item
-                        name="phoneNumber"
-                        label="Số điện thoại"
-                    >
-                        <Input placeholder="Số điện thoại" />
+                    <Form.Item name="phoneNumber" label="Số điện thoại">
+                        <Input placeholder="Số điện thoại" size="large" />
                     </Form.Item>
-                    <Form.Item>
+                    <Form.Item style={{ marginBottom: 0 }}>
                         <Space>
-                            <Button type="primary" htmlType="submit">
+                            <Button type="primary" htmlType="submit" size="large">
                                 Cập nhật
                             </Button>
-                            <Button onClick={() => {
+                            <Button size="large" onClick={() => {
                                 setEditModalVisible(false);
                                 form.resetFields();
+                                setEditingAccount(null);
+                            }}>
+                                Hủy
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Modal Tạo tài khoản nhân viên */}
+            <Modal
+                title="Tạo tài khoản nhân viên mới"
+                open={createModalVisible}
+                onCancel={() => {
+                    setCreateModalVisible(false);
+                    createForm.resetFields();
+                }}
+                footer={null}
+                width={700}
+                destroyOnClose
+            >
+                <Form
+                    form={createForm}
+                    layout="vertical"
+                    onFinish={handleCreateSubmit}
+                >
+                    <Form.Item
+                        name="username"
+                        label="Tên đăng nhập"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                            { min: 4, message: 'Tên đăng nhập phải có ít nhất 4 ký tự!' }
+                        ]}
+                    >
+                        <Input placeholder="Tên đăng nhập" size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        label="Mật khẩu"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                        ]}
+                    >
+                        <Input.Password placeholder="Mật khẩu" size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Email không hợp lệ!' }
+                        ]}
+                    >
+                        <Input placeholder="Email" size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="roles"
+                        label="Vai trò"
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn ít nhất một vai trò!' }
+                        ]}
+                    >
+                        <Select
+                            mode="multiple"
+                            placeholder="Chọn vai trò"
+                            size="large"
+                        >
+                            {AVAILABLE_ROLES.map(role => (
+                                <Option key={role.value} value={role.value}>
+                                    <Tag color={role.color}>{role.label}</Tag>
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+                        <Space>
+                            <Button type="primary" htmlType="submit" size="large">
+                                Tạo tài khoản
+                            </Button>
+                            <Button size="large" onClick={() => {
+                                setCreateModalVisible(false);
+                                createForm.resetFields();
+                            }}>
+                                Hủy
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Modal Cập nhật vai trò */}
+            <Modal
+                title={`Cập nhật vai trò: ${editingAccount?.username}`}
+                open={rolesModalVisible}
+                onCancel={() => {
+                    setRolesModalVisible(false);
+                    rolesForm.resetFields();
+                    setEditingAccount(null);
+                }}
+                footer={null}
+                width={500}
+            >
+                <Form
+                    form={rolesForm}
+                    layout="vertical"
+                    onFinish={handleUpdateRoles}
+                >
+                    <Form.Item
+                        name="roles"
+                        label="Vai trò"
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn ít nhất một vai trò!' }
+                        ]}
+                    >
+                        <Checkbox.Group style={{ width: '100%' }}>
+                            <Space direction="vertical" style={{ width: '100%' }}>
+                                {AVAILABLE_ROLES.map(role => (
+                                    <Checkbox key={role.value} value={role.value}>
+                                        <Tag color={role.color}>{role.label}</Tag>
+                                    </Checkbox>
+                                ))}
+                            </Space>
+                        </Checkbox.Group>
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+                        <Space>
+                            <Button type="primary" htmlType="submit" size="large">
+                                Cập nhật
+                            </Button>
+                            <Button size="large" onClick={() => {
+                                setRolesModalVisible(false);
+                                rolesForm.resetFields();
                                 setEditingAccount(null);
                             }}>
                                 Hủy
@@ -412,4 +581,3 @@ const AdminAccountsPage = () => {
 };
 
 export default AdminAccountsPage;
-

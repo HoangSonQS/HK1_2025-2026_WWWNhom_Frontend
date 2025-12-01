@@ -21,11 +21,16 @@ import AdminCategoriesPage from '../pages/admin/AdminCategoriesPage';
 import AdminAccountsPage from '../pages/admin/AdminAccountsPage';
 import AdminOrdersPage from '../pages/admin/AdminOrdersPage';
 import AdminOrderDetailPage from '../pages/admin/AdminOrderDetailPage';
+import AdminPromotionDetailPage from '../pages/admin/AdminPromotionDetailPage';
+import AdminPromotionsPage from '../pages/admin/AdminPromotionsPage';
+import AdminSuppliersPage from '../pages/admin/AdminSuppliersPage';
+import AdminImportStocksPage from '../pages/admin/AdminImportStocksPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import MyOrdersPage from '../pages/MyOrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import NotificationsPage from '../pages/NotificationsPage';
+import PaymentResultPage from '../pages/PaymentResultPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -47,6 +52,10 @@ const AppRoutes = () => {
         <Route path="accounts" element={<AdminAccountsPage />} />
         <Route path="orders" element={<AdminOrdersPage />} />
         <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+        <Route path="promotions" element={<AdminPromotionsPage />} />
+        <Route path="promotions/:id" element={<AdminPromotionDetailPage />} />
+        <Route path="suppliers" element={<AdminSuppliersPage />} />
+        <Route path="import-stocks" element={<AdminImportStocksPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
       
@@ -62,6 +71,7 @@ const AppRoutes = () => {
       <Route path={ROUTES.MY_ORDERS} element={<MyOrdersPage />} />
       <Route path="/orders/:id" element={<OrderDetailPage />} />
       <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
+      <Route path={ROUTES.PAYMENT_RESULT} element={<PaymentResultPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

@@ -1,6 +1,14 @@
 import apiClient from '../../../services/apiClient';
 
-export const createVnPayPayment = (orderId) => {
-  return apiClient.post('/payment/create-payment', { orderId });
+/**
+ * Tạo URL thanh toán VNPay cho đơn hàng
+ * @param {number} orderId - ID của đơn hàng
+ * @returns {Promise} Response chứa paymentUrl
+ */
+export const createPayment = async (orderId) => {
+  const response = await apiClient.post('/payment/create-payment', {
+    orderId: orderId
+  });
+  return response;
 };
 

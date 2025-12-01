@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Layout, Card, Button, Result, Spin, Typography } from "antd";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import Header from "../components/Header";
 import { ROUTES } from "../utils/constants";
@@ -12,6 +12,9 @@ const { Title, Text } = Typography;
 const PaymentResultPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
 
   const status = searchParams.get("status"); // "success" hoặc "failed"
   const orderId = searchParams.get("orderId");

@@ -103,8 +103,21 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
     };
 
     const handleImageChange = (info) => {
-        if (info.file.status === 'done' || info.file.originFileObj) {
-            setImageFile(info.file.originFileObj || info.file);
+        // Khi beforeUpload return false, file vẫn được thêm vào fileList
+        // và onChange sẽ được gọi với file object
+        if (info.fileList.length > 0) {
+            const file = info.file.originFileObj || info.file;
+            if (file) {
+                setImageFile(file);
+                // Set giá trị vào form để validation hoạt động đúng
+                form.setFieldsValue({ image: file });
+                form.validateFields(['image']);
+            }
+        } else {
+            // Khi xóa file
+            setImageFile(null);
+            form.setFieldsValue({ image: null });
+            form.validateFields(['image']);
         }
     };
 
@@ -120,7 +133,16 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
             return Upload.LIST_IGNORE;
         }
         setImageFile(file);
+        // Set giá trị vào form để validation hoạt động đúng
+        form.setFieldsValue({ image: file });
+        form.validateFields(['image']);
         return false;
+    };
+
+    const handleRemoveImage = () => {
+        setImageFile(null);
+        form.setFieldsValue({ image: null });
+        form.validateFields(['image']);
     };
 
     const handleCancel = () => {
@@ -208,6 +230,10 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
                             mode="multiple"
                             size="large"
                             placeholder="Chọn thể loại"
+                            showSearch
+                            filterOption={(input, option) =>
+                                (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
                         >
                             {categories.map(category => (
                                 <Option key={category.id} value={category.id}>
@@ -237,6 +263,7 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
                         <Upload
                             beforeUpload={beforeUpload}
                             onChange={handleImageChange}
+                            onRemove={handleRemoveImage}
                             maxCount={1}
                             listType="picture"
                         >

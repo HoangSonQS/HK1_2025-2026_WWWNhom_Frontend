@@ -614,7 +614,6 @@ const OrderDetailPage = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  padding: "8px 0",
                   background: "#f8f9fa",
                   margin: "-8px -16px",
                   padding: "12px 16px",

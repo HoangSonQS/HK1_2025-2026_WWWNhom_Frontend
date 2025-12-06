@@ -31,6 +31,7 @@ import MyOrdersPage from '../pages/MyOrdersPage';
 import OrderDetailPage from '../pages/OrderDetailPage';
 import NotificationsPage from '../pages/NotificationsPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
+import ChatbotPage from '../pages/ChatbotPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -72,6 +73,7 @@ const AppRoutes = () => {
       <Route path="/orders/:id" element={<OrderDetailPage />} />
       <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
       <Route path={ROUTES.PAYMENT_RESULT} element={<PaymentResultPage />} />
+      <Route path="/chatbot" element={<ChatbotPage />} />
       
       {/* Admin/Staff routes - Books */}
       <Route path="/books/add" element={<AddBookPage />} />

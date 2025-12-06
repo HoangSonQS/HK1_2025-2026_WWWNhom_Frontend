@@ -25,7 +25,7 @@ import {
   addAddress,
 } from "../features/address/api/addressService";
 import { validatePromotionCode } from "../features/promotion/api/promotionService";
-import { createVnPayPayment } from "../features/payment/api/paymentService";
+import { createPayment } from "../features/payment/api/paymentService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
 import "../styles/cart.css";
@@ -242,7 +242,7 @@ const CheckoutPage = () => {
         try {
           message.loading("Đang chuyển sang cổng thanh toán VNPay...", 1.5);
           console.log("Creating VNPay payment for order:", order.id);
-          const paymentResponse = await createVnPayPayment(order.id);
+          const paymentResponse = await createPayment(order.id);
           console.log("Payment response:", paymentResponse);
           const paymentUrl = paymentResponse.data?.paymentUrl;
           if (paymentUrl) {

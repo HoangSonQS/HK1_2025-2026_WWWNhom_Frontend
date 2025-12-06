@@ -1,0 +1,53 @@
+/* Chatbot Modal Styles */
+.chatbot-modal .ant-modal-content {
+    padding: 0;
+}
+
+.chatbot-modal .ant-modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 0;
+}
+
+.chatbot-modal .ant-modal-body {
+    padding: 0;
+}
+
+.chatbot-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+}
+
+.chatbot-modal-content .chatbot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f5f7fa;
+}
+
+.chatbot-modal-content .chatbot-input-container {
+    padding: 16px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Custom scrollbar cho messages */
+.chatbot-modal-content .chatbot-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbot-modal-content .chatbot-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chatbot-modal-content .chatbot-messages::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.chatbot-modal-content .chatbot-messages::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+

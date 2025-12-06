@@ -28,6 +28,7 @@ import {
   ShoppingOutlined,
   BellOutlined,
   CheckOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../utils/constants";
@@ -430,6 +431,21 @@ const Header = () => {
         </div>
 
         <div className="header-actions">
+          <Button
+            type="default"
+            icon={<MessageOutlined />}
+            onClick={() => {
+              // Trigger mở widget bằng cách dispatch event
+              window.dispatchEvent(new CustomEvent('openChatbotWidget'));
+            }}
+            className="chatbot-button"
+            style={{
+              marginRight: user ? 8 : 0,
+              border: "1px solid #d9d9d9",
+              position: "relative",
+            }}
+            title="Trợ lý AI"
+          />
           {user && (
             <>
               <Badge
@@ -597,6 +613,7 @@ const Header = () => {
           </Space>
         )}
       </Modal>
+
     </AntHeader>
   );
 };

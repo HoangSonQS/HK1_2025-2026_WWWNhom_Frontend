@@ -1,16 +1,21 @@
 import React from 'react';
 import { Button, Checkbox, Form, Input, message, Alert } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import '../../../styles/auth.css';
 import { login } from '../api/authService';
 import { ROUTES, STORAGE_KEYS } from '../../../utils/constants';
+import { decodeJWT, checkSellerStaffRole, checkWarehouseStaffRole, checkCustomerRole } from '../../../utils/jwt';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [form] = Form.useForm();
     const [loading, setLoading] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState('');
+    
+    // Lấy returnUrl từ location.state (nếu có)
+    const returnUrl = location.state?.returnUrl;
     
     const onFinish = async (values) => {
         setLoading(true);
@@ -33,8 +38,53 @@ const Login = () => {
                 if (response.data.refreshToken) {
                     localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.data.refreshToken);
                 }
+                
+                // Dispatch event để Header và các component khác cập nhật
+                window.dispatchEvent(new CustomEvent('jwtTokenChanged'));
+                
+                // Giải mã JWT để xác định role hiện tại
+                const jwtData = decodeJWT(accessToken);
+                
+                // Kiểm tra nếu là staff -> redirect về staff login
+                let scopeString = '';
+                if (typeof jwtData?.scope === 'string') {
+                    scopeString = jwtData.scope;
+                } else if (Array.isArray(jwtData?.scope)) {
+                    scopeString = jwtData.scope.join(' ');
+                }
+                const upperScope = scopeString.toUpperCase();
+                const isSellerStaff = upperScope.includes('SELLER_STAFF');
+                const isWarehouseStaff = upperScope.includes('WAREHOUSE_STAFF');
+                
+                if (isSellerStaff || isWarehouseStaff) {
+                    // Xóa token vừa lưu (vì đây là jwtToken, không phải staffToken)
+                    localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
+                    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+                    message.info('Vui lòng đăng nhập tại trang Staff Login');
+                    navigate(ROUTES.STAFF_LOGIN);
+                    setLoading(false);
+                    return;
+                }
+                                
                 message.success('Đăng nhập thành công!');
-                navigate(ROUTES.HOME);
+                
+                // Nếu có returnUrl, quay lại trang đó (ví dụ: từ modal đăng nhập)
+                if (returnUrl) {
+                    navigate(returnUrl);
+                    return;
+                }
+                
+                // Điều hướng dựa trên role (chỉ customer và admin)
+                if (checkCustomerRole()) {
+                    // Customer điều hướng đến trang chủ
+                    navigate(ROUTES.HOME);
+                } else if (jwtData && jwtData.scope?.includes('ADMIN')) {
+                    // Admin đăng nhập qua luồng user -> điều hướng về trang chủ để xem chức năng chung
+                    navigate(ROUTES.HOME);
+                } else {
+                    // Mặc định điều hướng đến trang chủ
+                    navigate(ROUTES.HOME);
+                }
             } else {
                 const errorMsg = 'Tên đăng nhập hoặc mật khẩu không đúng!';
                 setErrorMessage(errorMsg);
@@ -81,7 +131,7 @@ const Login = () => {
                     name="login"
                     className="login-form-modern"
                     initialValues={{
-                        remember: true,
+                        remember: false,
                     }}
                     onFinish={onFinish}
                     autoComplete="off"

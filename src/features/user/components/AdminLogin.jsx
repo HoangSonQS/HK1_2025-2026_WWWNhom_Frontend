@@ -29,31 +29,53 @@ const AdminLogin = () => {
             
             if (response.data && (response.data.token || response.data.accessToken)) {
                 const accessToken = response.data.token || response.data.accessToken;
-                localStorage.setItem(STORAGE_KEYS.JWT_TOKEN, accessToken);
+                // Lưu token riêng cho admin, không ghi đè token public
+                localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, accessToken);
                 if (response.data.refreshToken) {
-                    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.data.refreshToken);
+                    localStorage.setItem(STORAGE_KEYS.ADMIN_REFRESH_TOKEN, response.data.refreshToken);
                 }
                 
-                // Kiểm tra role sau khi login
+                // Kiểm tra role sau khi login - decode trực tiếp từ token vừa nhận được
                 const jwtData = decodeJWT(accessToken);
                 console.log('🔍 Decoded JWT Data:', jwtData);
                 console.log('🔍 JWT Scope:', jwtData?.scope, 'Type:', typeof jwtData?.scope);
                 
-                const isAdmin = checkAdminRole();
-                console.log('🔍 Is Admin:', isAdmin);
+                // Kiểm tra scope trực tiếp từ decoded token
+                if (!jwtData || !jwtData.scope) {
+                    const errorMsg = 'Token không hợp lệ hoặc thiếu thông tin quyền.';
+                    setErrorMessage(errorMsg);
+                    message.error(errorMsg);
+                    localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+                    localStorage.removeItem(STORAGE_KEYS.ADMIN_REFRESH_TOKEN);
+                    setLoading(false);
+                    return;
+                }
+                
+                // Kiểm tra scope có chứa ADMIN
+                let scopeString = '';
+                if (typeof jwtData.scope === 'string') {
+                    scopeString = jwtData.scope;
+                } else if (Array.isArray(jwtData.scope)) {
+                    scopeString = jwtData.scope.join(' ');
+                }
+                
+                const isAdmin = scopeString.toUpperCase().includes('ADMIN');
+                console.log('🔍 Is Admin:', isAdmin, 'Scope:', scopeString);
                 
                 if (!isAdmin) {
                     const errorMsg = 'Truy cập bị từ chối. Trang này chỉ dành cho quản trị viên.';
                     console.error('❌ Admin check failed. JWT data:', jwtData);
                     setErrorMessage(errorMsg);
                     message.error(errorMsg);
-                    localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
-                    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+                    localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+                    localStorage.removeItem(STORAGE_KEYS.ADMIN_REFRESH_TOKEN);
                     setLoading(false);
                     return;
                 }
                 
                 message.success('Đăng nhập thành công!');
+                // Dispatch event để AdminHeader cập nhật
+                window.dispatchEvent(new CustomEvent('adminTokenChanged'));
                 navigate('/admin/dashboard');
             } else {
                 const errorMsg = 'Tên đăng nhập hoặc mật khẩu không đúng!';

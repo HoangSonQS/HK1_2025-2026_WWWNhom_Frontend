@@ -4,7 +4,8 @@ import { ThunderboltOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../features/cart/api/cartService";
 import { decodeJWT } from "../utils/jwt";
-import { ROUTES } from "../utils/constants";
+import { ROUTES, STORAGE_KEYS } from "../utils/constants";
+import LoginRequiredModal from "./LoginRequiredModal";
 
 const BuyNowButton = ({
   book,
@@ -13,22 +14,23 @@ const BuyNowButton = ({
   block = false,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
   const handleBuyNow = async (e) => {
     // Ngăn event propagation để không trigger onClick của Card
     e.stopPropagation();
 
-    // Kiểm tra đăng nhập
-    const token = localStorage.getItem("jwtToken");
+    // Kiểm tra đăng nhập - CHỈ đọc jwtToken, không đọc adminToken
+    const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN);
     if (!token) {
-      message.warning("Vui lòng đăng nhập để mua sách");
+      setShowLoginModal(true);
       return;
     }
 
-    const decoded = decodeJWT(token);
+    const decoded = decodeJWT(token, false); // useAdminToken = false
     if (!decoded) {
-      message.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại");
+      setShowLoginModal(true);
       return;
     }
 
@@ -57,20 +59,28 @@ const BuyNowButton = ({
   };
 
   return (
-    <Button
-      type="default"
-      onClick={handleBuyNow}
-      loading={loading}
-      size={size}
-      block={block}
-      disabled={book.quantity === 0}
-      style={{
-        borderColor: "#ff6b35",
-        color: "#ff6b35",
-      }}
-    >
-      {book.quantity === 0 ? "Hết hàng" : "Mua ngay"}
-    </Button>
+    <>
+      <Button
+        type="default"
+        onClick={handleBuyNow}
+        loading={loading}
+        size={size}
+        block={block}
+        disabled={book.quantity === 0}
+        style={{
+          borderColor: "#ff6b35",
+          color: "#ff6b35",
+        }}
+      >
+        {book.quantity === 0 ? "Hết hàng" : "Mua ngay"}
+      </Button>
+      <LoginRequiredModal
+        visible={showLoginModal}
+        onCancel={() => setShowLoginModal(false)}
+        title="Yêu cầu đăng nhập"
+        content="Bạn cần đăng nhập để mua sách."
+      />
+    </>
   );
 };
 

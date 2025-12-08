@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Form, Input, InputNumber, Button, Upload, message, Select, Spin } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Layout, Form, Input, InputNumber, Button, Upload, message, Select, Spin, Modal } from 'antd';
+import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import { getBookById, updateBook } from '../features/book/api/bookService';
-import { getAllCategories } from '../features/category/api/categoryService';
+import { getBookById as getBookByIdStaff, updateBook as updateBookStaff } from '../features/book/api/staffBookService';
+import { getAllCategories, createCategory } from '../features/category/api/categoryService';
+import { getAllCategories as getAllCategoriesStaff, createCategory as createCategoryStaff } from '../features/category/api/staffCategoryService';
 import { getImageUrl } from '../utils/imageUtils';
 import Header from '../components/Header';
 import '../styles/auth.css';
@@ -22,9 +24,14 @@ const EditBookPage = () => {
     const [categories, setCategories] = useState([]);
     const [imageFile, setImageFile] = useState(null);
     const [currentImageUrl, setCurrentImageUrl] = useState('');
+    const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [creatingCategory, setCreatingCategory] = useState(false);
     
     // Kiểm tra xem có đến từ admin dashboard không
     const fromAdmin = location.state?.fromAdmin || false;
+    // Kiểm tra xem có đến từ staff route không
+    const isStaffRoute = location.pathname.startsWith('/staff');
 
     useEffect(() => {
         loadBook();
@@ -34,7 +41,10 @@ const EditBookPage = () => {
     const loadBook = async () => {
         setLoadingBook(true);
         try {
-            const response = await getBookById(id);
+            // Nếu từ staff route, dùng staffBookService, ngược lại dùng bookService
+            const response = isStaffRoute
+                ? await getBookByIdStaff(id)
+                : await getBookById(id);
             const book = response.data;
             setCurrentImageUrl(book.imageUrl || '');
             
@@ -55,10 +65,48 @@ const EditBookPage = () => {
 
     const loadCategories = async () => {
         try {
-            const response = await getAllCategories();
+            // Nếu từ staff route, dùng staffCategoryService, ngược lại dùng categoryService
+            const response = isStaffRoute 
+                ? await getAllCategoriesStaff() 
+                : await getAllCategories();
             setCategories(response.data || []);
         } catch (error) {
             console.error('Error loading categories:', error);
+        }
+    };
+
+    const handleCreateCategory = async () => {
+        if (!newCategoryName || !newCategoryName.trim()) {
+            message.error('Vui lòng nhập tên thể loại!');
+            return;
+        }
+
+        setCreatingCategory(true);
+        try {
+            // Nếu từ staff route, dùng staffCategoryService, ngược lại dùng categoryService
+            const response = isStaffRoute
+                ? await createCategoryStaff({ name: newCategoryName.trim() })
+                : await createCategory({ name: newCategoryName.trim() });
+            const newCategory = response.data;
+            
+            // Thêm category mới vào danh sách
+            setCategories([...categories, newCategory]);
+            
+            // Tự động chọn category vừa tạo
+            const currentCategoryIds = form.getFieldValue('categoryIds') || [];
+            form.setFieldsValue({
+                categoryIds: [...currentCategoryIds, newCategory.id]
+            });
+            
+            message.success('Thêm thể loại mới thành công!');
+            setCategoryModalVisible(false);
+            setNewCategoryName('');
+        } catch (error) {
+            console.error('Error creating category:', error);
+            const errorMsg = error.response?.data?.message || 'Thêm thể loại thất bại';
+            message.error(errorMsg);
+        } finally {
+            setCreatingCategory(false);
         }
     };
 
@@ -73,10 +121,21 @@ const EditBookPage = () => {
                 categoryIds: values.categoryIds || []
             };
 
-            await updateBook(id, bookData, imageFile);
+            // Nếu từ staff route, dùng staffBookService, ngược lại dùng bookService
+            if (isStaffRoute) {
+                await updateBookStaff(id, bookData, imageFile);
+            } else {
+                await updateBook(id, bookData, imageFile);
+            }
             message.success('Cập nhật sách thành công!');
-            // Nếu đến từ admin, quay về trang admin/books, ngược lại quay về trang công khai
-            navigate(fromAdmin ? '/admin/books' : '/books');
+            // Điều hướng dựa trên route
+            if (isStaffRoute) {
+                navigate('/staff/books');
+            } else if (fromAdmin) {
+                navigate('/admin/books');
+            } else {
+                navigate('/books');
+            }
         } catch (error) {
             console.error('Error updating book:', error);
             const errorMsg = error.response?.data?.message || 'Cập nhật sách thất bại';
@@ -107,10 +166,13 @@ const EditBookPage = () => {
         return false;
     };
 
+    // Nếu từ staff route, không hiển thị Header (vì đã có StaffHeader trong StaffDashboard)
+    const shouldShowHeader = !isStaffRoute;
+
     if (loadingBook) {
         return (
             <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-                <Header />
+                {shouldShowHeader && <Header />}
                 <Content>
                     <div className="login-page-container">
                         <Spin size="large" />
@@ -122,7 +184,7 @@ const EditBookPage = () => {
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-            <Header />
+            {shouldShowHeader && <Header />}
             <Content>
                 <div className="login-page-container">
                     <div className="login-form-wrapper" style={{ maxWidth: '800px' }}>
@@ -201,6 +263,21 @@ const EditBookPage = () => {
                             filterOption={(input, option) =>
                                 (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
                             }
+                            dropdownRender={(menu) => (
+                                <>
+                                    {menu}
+                                    <div style={{ padding: '8px', borderTop: '1px solid #f0f0f0' }}>
+                                        <Button
+                                            type="link"
+                                            icon={<PlusOutlined />}
+                                            onClick={() => setCategoryModalVisible(true)}
+                                            style={{ width: '100%' }}
+                                        >
+                                            Thêm thể loại mới
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         >
                             {categories.map(category => (
                                 <Option key={category.id} value={category.id}>
@@ -266,6 +343,33 @@ const EditBookPage = () => {
                     </div>
                 </div>
             </Content>
+
+            {/* Modal thêm thể loại mới */}
+            <Modal
+                title="Thêm thể loại mới"
+                open={categoryModalVisible}
+                onOk={handleCreateCategory}
+                onCancel={() => {
+                    setCategoryModalVisible(false);
+                    setNewCategoryName('');
+                }}
+                okText="Thêm"
+                cancelText="Hủy"
+                confirmLoading={creatingCategory}
+            >
+                <Form.Item
+                    label="Tên thể loại"
+                    rules={[{ required: true, message: 'Vui lòng nhập tên thể loại!' }]}
+                >
+                    <Input
+                        placeholder="Nhập tên thể loại"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onPressEnter={handleCreateCategory}
+                        autoFocus
+                    />
+                </Form.Item>
+            </Modal>
         </Layout>
     );
 };

@@ -1,4 +1,5 @@
 import apiClient from '../../../services/apiClient';
+import adminApiClient from '../../../services/adminApiClient';
 
 /**
  * User Service - Tất cả các API calls liên quan đến người dùng
@@ -54,11 +55,11 @@ export const setDefaultAddress = (addressId) => {
  * Admin Account APIs - Quản lý tài khoản (chỉ dành cho admin)
  */
 export const getAllAccounts = () => {
-    return apiClient.get('admin/accounts');
+    return adminApiClient.get('admin/accounts');
 };
 
 export const updateAccountStatus = (accountId, isActive) => {
-    return apiClient.put(`admin/accounts/${accountId}/status`, { isActive }, {
+    return adminApiClient.put(`admin/accounts/${accountId}/status`, { isActive }, {
         headers: {
             'Content-Type': 'application/json',
         }
@@ -69,7 +70,7 @@ export const updateAccountStatus = (accountId, isActive) => {
  * Cập nhật thông tin tài khoản khác (chỉ dành cho admin)
  */
 export const updateAccountById = (accountId, accountData) => {
-    return apiClient.put(`admin/accounts/${accountId}`, accountData, {
+    return adminApiClient.put(`admin/accounts/${accountId}`, accountData, {
         headers: {
             'Content-Type': 'application/json',
         }
@@ -80,7 +81,7 @@ export const updateAccountById = (accountId, accountData) => {
  * Tạo tài khoản nhân viên mới (chỉ dành cho admin)
  */
 export const createStaffAccount = (accountData) => {
-    return apiClient.post('admin/accounts', accountData, {
+    return adminApiClient.post('admin/accounts', accountData, {
         headers: {
             'Content-Type': 'application/json',
         }
@@ -91,7 +92,7 @@ export const createStaffAccount = (accountData) => {
  * Cập nhật roles của tài khoản (chỉ dành cho admin)
  */
 export const updateAccountRoles = (accountId, roles) => {
-    return apiClient.put(`admin/accounts/${accountId}/roles`, { roles }, {
+    return adminApiClient.put(`admin/accounts/${accountId}/roles`, { roles }, {
         headers: {
             'Content-Type': 'application/json',
         }

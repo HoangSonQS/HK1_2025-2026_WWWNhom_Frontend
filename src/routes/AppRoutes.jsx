@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../features/user/components/Login';
 import AdminLogin from '../features/user/components/AdminLogin';
+import StaffLogin from '../features/user/components/StaffLogin';
 import Register from '../features/user/components/Register';
 import ForgotPassword from '../features/user/components/ForgotPassword';
 import ResetPassword from '../features/user/components/ResetPassword';
@@ -32,6 +33,24 @@ import OrderDetailPage from '../pages/OrderDetailPage';
 import NotificationsPage from '../pages/NotificationsPage';
 import PaymentResultPage from '../pages/PaymentResultPage';
 import ChatbotPage from '../pages/ChatbotPage';
+import ProtectedAdminRoute from '../components/ProtectedAdminRoute';
+import ProtectedStaffRoute from '../components/ProtectedStaffRoute';
+import StaffDashboard from '../pages/StaffDashboard';
+import StaffHome from '../pages/staff/StaffHome';
+import StaffBooksPage from '../pages/staff/StaffBooksPage';
+import StaffStockRequestsPage from '../pages/staff/StaffStockRequestsPage';
+import BookImportHistoryPage from '../pages/staff/BookImportHistoryPage';
+import StaffCustomersPage from '../pages/staff/StaffCustomersPage';
+import StaffCustomerDetailPage from '../pages/staff/StaffCustomerDetailPage';
+import StaffReturnRequestsPage from '../pages/staff/StaffReturnRequestsPage';
+import StaffReportsPage from '../pages/staff/StaffReportsPage';
+import StaffPromotionAnalyticsPage from '../pages/staff/StaffPromotionAnalyticsPage';
+import StaffStockCheckPage from '../pages/staff/StaffStockCheckPage';
+import StaffWarehouseReturnsPage from '../pages/staff/StaffWarehouseReturnsPage';
+import StaffPurchaseOrdersPage from '../pages/staff/StaffPurchaseOrdersPage';
+import StaffPromotionsPage from '../pages/staff/StaffPromotionsPage';
+import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
+import StaffOrderDetailPage from '../pages/staff/StaffOrderDetailPage';
 import { ROUTES } from '../utils/constants';
 
 const AppRoutes = () => {
@@ -41,12 +60,20 @@ const AppRoutes = () => {
       <Route path={ROUTES.HOME} element={<Home />} />
       <Route path={ROUTES.LOGIN} element={<Login />} />
       <Route path={ROUTES.ADMIN_LOGIN} element={<AdminLogin />} />
+      <Route path={ROUTES.STAFF_LOGIN} element={<StaffLogin />} />
       <Route path={ROUTES.REGISTER} element={<Register />} />
       <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
       <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
       
-      {/* Admin Dashboard with nested routes */}
-      <Route path="/admin" element={<AdminDashboard />}>
+      {/* Admin Dashboard with nested routes - Protected by adminToken */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedAdminRoute>
+            <AdminDashboard />
+          </ProtectedAdminRoute>
+        }
+      >
         <Route path="dashboard" element={<AdminHome />} />
         <Route path="books" element={<AdminBooksPage />} />
         <Route path="categories" element={<AdminCategoriesPage />} />
@@ -57,7 +84,51 @@ const AppRoutes = () => {
         <Route path="promotions/:id" element={<AdminPromotionDetailPage />} />
         <Route path="suppliers" element={<AdminSuppliersPage />} />
         <Route path="import-stocks" element={<AdminImportStocksPage />} />
+        <Route path="customers" element={<StaffCustomersPage />} />
+        <Route path="customers/:id" element={<StaffCustomerDetailPage />} />
+        <Route path="return-requests" element={<StaffReturnRequestsPage />} />
+        <Route path="reports" element={<StaffReportsPage />} />
+        <Route path="promotion-analytics" element={<StaffPromotionAnalyticsPage />} />
+        <Route path="stock-requests" element={<StaffStockRequestsPage />} />
+        <Route path="stock-check" element={<StaffStockCheckPage />} />
+        <Route path="warehouse-returns" element={<StaffWarehouseReturnsPage />} />
+        <Route path="purchase-orders" element={<StaffPurchaseOrdersPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
+      </Route>
+      
+      {/* Staff Dashboard with nested routes - Protected by jwtToken (staff) */}
+      <Route 
+        path="/staff" 
+        element={
+          <ProtectedStaffRoute>
+            <StaffDashboard />
+          </ProtectedStaffRoute>
+        }
+      >
+        <Route path="dashboard" element={<StaffHome />} />
+        {/* Seller Staff routes */}
+        <Route path="books" element={<StaffBooksPage />} />
+        <Route path="books/add" element={<AddBookPage />} />
+        <Route path="books/:id/edit" element={<EditBookPage />} />
+        <Route path="books/:id/history" element={<BookImportHistoryPage />} />
+        <Route path="customers" element={<StaffCustomersPage />} />
+        <Route path="customers/:id" element={<StaffCustomerDetailPage />} />
+        <Route path="stock-requests" element={<StaffStockRequestsPage />} />
+        <Route path="return-requests" element={<StaffReturnRequestsPage />} />
+        <Route path="reports" element={<StaffReportsPage />} />
+        <Route path="promotion-analytics" element={<StaffPromotionAnalyticsPage />} />
+        <Route path="stock-check" element={<StaffStockCheckPage />} />
+        <Route path="warehouse-returns" element={<StaffWarehouseReturnsPage />} />
+        <Route path="purchase-orders" element={<StaffPurchaseOrdersPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="orders" element={<StaffOrdersPage />} />
+        <Route path="orders/:id" element={<StaffOrderDetailPage />} />
+        <Route path="promotions" element={<StaffPromotionsPage />} />
+        <Route path="promotions/:id" element={<AdminPromotionDetailPage />} /> {/* Reusing AdminPromotionDetailPage */}
+        {/* Warehouse Staff routes */}
+        <Route path="suppliers" element={<AdminSuppliersPage />} />
+        <Route path="import-stocks" element={<AdminImportStocksPage />} />
+        <Route index element={<Navigate to="/staff/dashboard" replace />} />
       </Route>
       
       {/* Books routes - Public */}

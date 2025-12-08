@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Checkbox, Button, message } from 'antd';
-import { supplierService } from '../../../features/supplier/api';
+import { adminSupplierService } from '../../../features/supplier/api/adminSupplierService';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../utils/constants';
 
 const { TextArea } = Input;
 
 const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
 
@@ -40,19 +43,24 @@ const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
       };
 
       if (isEditMode) {
-        await supplierService.updateSupplier(supplier.id, formData);
+        await adminSupplierService.updateSupplier(supplier.id, formData);
         message.success('Cập nhật nhà cung cấp thành công!');
       } else {
-        await supplierService.createSupplier(formData);
+        await adminSupplierService.createSupplier(formData);
         message.success('Thêm nhà cung cấp thành công!');
       }
 
       form.resetFields();
       onSubmit(formData);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra';
-      message.error(errorMessage);
       console.error('Error submitting supplier:', err);
+      if (err.response?.status === 401) {
+        message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+      } else {
+        const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra';
+        message.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

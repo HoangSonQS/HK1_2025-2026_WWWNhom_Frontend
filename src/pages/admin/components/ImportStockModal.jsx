@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, Button, InputNumber, Table, message, Space } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { importStockService } from '../../../features/importStock/api';
-import { supplierService } from '../../../features/supplier/api';
+import { adminImportStockService } from '../../../features/importStock/api/adminImportStockService';
+import { staffImportStockService } from '../../../features/importStock/api/staffImportStockService';
+import { adminSupplierService } from '../../../features/supplier/api/adminSupplierService';
+import { staffSupplierService } from '../../../features/supplier/api/staffSupplierService';
 import { getAllBooks } from '../../../features/book/api/bookService';
+import { getAllBooks as getAllBooksStaff } from '../../../features/book/api/staffBookService';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../utils/constants';
 
 const { Option } = Select;
 
-const ImportStockModal = ({ isOpen, onClose, onSuccess }) => {
+const ImportStockModal = ({ isOpen, onClose, onSuccess, isStaffRoute = false }) => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
@@ -23,8 +29,8 @@ const ImportStockModal = ({ isOpen, onClose, onSuccess }) => {
   const loadData = async () => {
     try {
       const [suppliersData, booksData] = await Promise.all([
-        supplierService.getAllSuppliers(),
-        getAllBooks()
+        isStaffRoute ? staffSupplierService.getAllSuppliers() : adminSupplierService.getAllSuppliers(),
+        isStaffRoute ? getAllBooksStaff() : getAllBooks()
       ]);
       
       // Lọc suppliers đang hoạt động
@@ -87,15 +93,28 @@ const ImportStockModal = ({ isOpen, onClose, onSuccess }) => {
         }))
       };
 
-      await importStockService.createImportStock(importStockData);
+      const service = isStaffRoute ? staffImportStockService : adminImportStockService;
+      await service.createImportStock(importStockData);
       message.success('Tạo phiếu nhập kho thành công!');
+      
+      // Dispatch event để cập nhật stock real-time cho Seller
+      const updatedBookIds = importStockData.items.map(item => item.bookId);
+      window.dispatchEvent(new CustomEvent('stockUpdated', { 
+        detail: { bookIds: updatedBookIds } 
+      }));
+      
       form.resetFields();
       setItems([{ id: Date.now(), bookId: null, quantity: 1, importPrice: 0 }]);
       onSuccess();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra';
-      message.error(errorMessage);
       console.error('Error creating import stock:', err);
+      if (err.response?.status === 401) {
+        message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+      } else {
+        const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra';
+        message.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -155,9 +174,16 @@ const ImportStockModal = ({ isOpen, onClose, onSuccess }) => {
         <InputNumber
           min={0}
           value={importPrice}
-          onChange={(value) => handleItemChange(record.id, 'importPrice', value)}
-          formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={value => value.replace(/\$\s?|(,*)/g, '')}
+          onChange={(value) => handleItemChange(record.id, 'importPrice', Number(value) || 0)}
+          formatter={(value) => {
+            if (value === undefined || value === null) return '';
+            const digits = `${value}`.replace(/\D/g, '');
+            return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          }}
+          parser={(value) => {
+            const digits = (value || '').replace(/\D/g, '');
+            return digits ? Number(digits) : 0;
+          }}
           style={{ width: '100%' }}
         />
       ),

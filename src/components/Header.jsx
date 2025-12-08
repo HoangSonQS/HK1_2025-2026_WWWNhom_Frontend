@@ -31,7 +31,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
-import { ROUTES } from "../utils/constants";
+import { ROUTES, STORAGE_KEYS } from "../utils/constants";
 import { decodeJWT, isAdminOrStaff } from "../utils/jwt";
 import { logout } from "../features/user/api/authService";
 import { useCartCount } from "../hooks/useCartCount";
@@ -61,21 +61,57 @@ const Header = () => {
   const [notificationModalVisible, setNotificationModalVisible] =
     React.useState(false);
 
-  React.useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
+  // Hàm để cập nhật user info từ jwtToken (chỉ đọc jwtToken, không đọc adminToken)
+  const updateUserInfo = React.useCallback(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN); // CHỈ đọc jwtToken
     if (token) {
-      const decoded = decodeJWT(token);
+      const decoded = decodeJWT(token, false); // useAdminToken = false
       if (decoded) {
         setUser(decoded);
         setIsAdminStaff(isAdminOrStaff());
+      } else {
+        setUser(null);
+        setIsAdminStaff(false);
       }
+    } else {
+      setUser(null);
+      setIsAdminStaff(false);
     }
   }, []);
+
+  // Cập nhật user info khi component mount
+  React.useEffect(() => {
+    updateUserInfo();
+  }, [updateUserInfo]);
+
+  // Lắng nghe sự kiện khi jwtToken thay đổi (login/logout)
+  React.useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Chỉ cập nhật khi jwtToken thay đổi, không quan tâm adminToken
+      if (e.key === STORAGE_KEYS.JWT_TOKEN || e.key === null) {
+        updateUserInfo();
+      }
+    };
+
+    // Lắng nghe storage event (khi token thay đổi từ tab khác)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Lắng nghe custom event (khi token thay đổi trong cùng tab)
+    const handleTokenChange = () => {
+      updateUserInfo();
+    };
+    window.addEventListener('jwtTokenChanged', handleTokenChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('jwtTokenChanged', handleTokenChange);
+    };
+  }, [updateUserInfo]);
 
   const [searchValue, setSearchValue] = useState("");
 
   const loadNotifications = async () => {
-    const token = localStorage.getItem("jwtToken");
+    const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN); // CHỈ đọc jwtToken
     if (!token) return;
 
     setLoadingNotifications(true);
@@ -335,12 +371,13 @@ const Header = () => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      localStorage.removeItem("jwtToken");
-      localStorage.removeItem("refreshToken");
+      localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       setUser(null);
       setIsAdminStaff(false);
+      // Dispatch event để các component khác biết jwtToken đã bị xóa
+      window.dispatchEvent(new CustomEvent('jwtTokenChanged'));
       navigate(ROUTES.HOME);
-      window.location.reload();
     }
   };
 

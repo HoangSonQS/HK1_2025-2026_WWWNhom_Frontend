@@ -95,11 +95,13 @@ const CheckoutPage = () => {
       const addressesData = response.data || [];
       setAddresses(addressesData);
 
-      // Tự động chọn địa chỉ mặc định
+      // Tự động chọn địa chỉ mặc định, nếu không có thì lấy địa chỉ đầu tiên
       const defaultAddress = addressesData.find((addr) => addr.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id);
-        form.setFieldsValue({ addressId: defaultAddress.id });
+      const fallbackAddress = addressesData[0];
+      const chosen = defaultAddress || fallbackAddress;
+      if (chosen) {
+        setSelectedAddressId(chosen.id);
+        form.setFieldsValue({ addressId: chosen.id });
       }
     } catch (error) {
       console.error("Error loading addresses:", error);
@@ -110,7 +112,7 @@ const CheckoutPage = () => {
     addressForm.resetFields();
     addressForm.setFieldsValue({
       addressType: "HOME",
-      isDefault: addresses.length === 0,
+      isDefault: true, // luôn đặt mặc định cho địa chỉ mới
     });
     setIsAddressModalVisible(true);
   };
@@ -124,7 +126,7 @@ const CheckoutPage = () => {
       const values = await addressForm.validateFields();
       const payload = {
         addressType: values.addressType,
-        isDefault: values.isDefault || false,
+        isDefault: true, // luôn đặt mặc định
         street: values.street || "",
         ward: values.ward || "",
         district: values.district || "",
@@ -649,9 +651,7 @@ const CheckoutPage = () => {
                 <Input placeholder="Ví dụ: TP. Hồ Chí Minh" />
               </Form.Item>
 
-              <Form.Item name="isDefault" valuePropName="checked">
-                <Checkbox>Đặt làm địa chỉ mặc định</Checkbox>
-              </Form.Item>
+              {/* Luôn đặt mặc định, không cần checkbox */}
             </Form>
           </Modal>
         </div>

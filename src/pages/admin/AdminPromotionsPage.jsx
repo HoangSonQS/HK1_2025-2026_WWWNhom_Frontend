@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Button, Space, message, Tag, Tabs, Input, DatePicker, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { 
-    getAllPromotions,
-    getPromotionLogsByDateRange
-} from '../../features/promotion/api/promotionService';
+import { getPromotionLogsByDateRange } from '../../features/promotion/api/promotionService';
+import { adminPromotionService } from '../../features/promotion/api/adminPromotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +24,50 @@ const AdminPromotionsPage = () => {
     const [logsLoading, setLogsLoading] = useState(false);
     const navigate = useNavigate();
 
+    const handleApprove = async (id) => {
+        try {
+            await adminPromotionService.approve(id);
+            message.success('Duyệt khuyến mãi thành công');
+            loadPromotions();
+        } catch (error) {
+            console.error('Error approving promotion:', error);
+            message.error(error.response?.data?.message || 'Duyệt khuyến mãi thất bại');
+        }
+    };
+
+    const handlePause = async (id) => {
+        try {
+            await adminPromotionService.pause(id);
+            message.success('Tạm dừng khuyến mãi');
+            loadPromotions();
+        } catch (error) {
+            console.error('Error pausing promotion:', error);
+            message.error(error.response?.data?.message || 'Tạm dừng thất bại');
+        }
+    };
+
+    const handleResume = async (id) => {
+        try {
+            await adminPromotionService.resume(id);
+            message.success('Kích hoạt lại khuyến mãi');
+            loadPromotions();
+        } catch (error) {
+            console.error('Error resuming promotion:', error);
+            message.error(error.response?.data?.message || 'Kích hoạt lại thất bại');
+        }
+    };
+
+    const handleDeactivate = async (id) => {
+        try {
+            await adminPromotionService.deactivate(id);
+            message.success('Xóa (deactivate) khuyến mãi thành công');
+            loadPromotions();
+        } catch (error) {
+            console.error('Error deactivating promotion:', error);
+            message.error(error.response?.data?.message || 'Xóa thất bại');
+        }
+    };
+
     useEffect(() => {
         loadPromotions();
     }, []);
@@ -33,8 +75,8 @@ const AdminPromotionsPage = () => {
     const loadPromotions = async () => {
         setLoading(true);
         try {
-            const response = await getAllPromotions();
-            const promotionsData = response.data || [];
+            const response = await adminPromotionService.getAll();
+            const promotionsData = response || [];
             
             // Sắp xếp theo ID tăng dần
             const sortedPromotions = [...promotionsData].sort((a, b) => {
@@ -99,6 +141,14 @@ const AdminPromotionsPage = () => {
     const isExpired = (endDate) => {
         if (!endDate) return false;
         return dayjs(endDate).isBefore(dayjs(), 'day');
+    };
+
+    const isActive = (promotion) => {
+        if (!promotion.isActive) return false;
+        if (isExpired(promotion.endDate)) return false;
+        const now = dayjs();
+        const startDate = dayjs(promotion.startDate);
+        return now.isAfter(startDate) || now.isSame(startDate, 'day');
     };
 
     const fetchLogsByRange = useCallback(async (rangeToUse, options = {}) => {
@@ -173,6 +223,14 @@ const AdminPromotionsPage = () => {
         [filteredPromotions]
     );
 
+    const activePromotions = useMemo(
+        () => filteredPromotions.filter(promo => {
+            const status = promo.status || (promo.isApproved ? 'ACTIVE' : 'PENDING');
+            return status === 'ACTIVE' && isActive(promo) && !isExpired(promo.endDate);
+        }),
+        [filteredPromotions]
+    );
+
     const rejectedPromotions = useMemo(
         () => filteredPromotions.filter(promo => promo.status === 'REJECTED'),
         [filteredPromotions]
@@ -185,7 +243,7 @@ const AdminPromotionsPage = () => {
 
     const displayedPromotions = useMemo(() => {
         if (activeTab === 'active') {
-            return approvedPromotions;
+            return activePromotions;
         }
         if (activeTab === 'pending') {
             return pendingPromotions;
@@ -200,159 +258,173 @@ const AdminPromotionsPage = () => {
             return pausedPromotions;
         }
         return filteredPromotions;
-    }, [filteredPromotions, pendingPromotions, approvedPromotions, rejectedPromotions, pausedPromotions, activeTab]);
+    }, [filteredPromotions, pendingPromotions, approvedPromotions, activePromotions, rejectedPromotions, pausedPromotions, activeTab]);
 
     const columns = [
         {
             title: 'ID',
             dataIndex: 'id',
             key: 'id',
-            width: 80,
-            fixed: 'left',
+            width: 60,
+            align: 'center',
         },
         {
             title: 'Tên khuyến mãi',
             dataIndex: 'name',
             key: 'name',
-            width: 200,
             ellipsis: true,
         },
         {
             title: 'Mã khuyến mãi',
             dataIndex: 'code',
             key: 'code',
-            width: 150,
-            render: (code) => (
-                <Tag 
-                    color="blue" 
-                    style={{ 
-                        fontWeight: 'bold',
-                        fontSize: '13px',
-                        padding: '4px 12px',
-                        borderRadius: '4px'
-                    }}
-                >
-                    {code}
-                </Tag>
-            ),
+            width: 110,
+            align: 'center',
+            render: (code) => <Tag color="blue">{code}</Tag>,
         },
         {
             title: 'Giảm giá',
             dataIndex: 'discountPercent',
             key: 'discountPercent',
-            width: 120,
-            render: (percent) => (
-                <span style={{ 
-                    color: '#f5222d',
-                    fontWeight: 600,
-                    fontSize: '14px'
-                }}>
-                    {percent}%
-                </span>
-            ),
-            sorter: (a, b) => a.discountPercent - b.discountPercent,
-        },
-        {
-            title: 'Ngày bắt đầu',
-            dataIndex: 'startDate',
-            key: 'startDate',
-            width: 150,
-            render: (date) => formatDate(date),
-            sorter: (a, b) => dayjs(a.startDate).unix() - dayjs(b.startDate).unix(),
-        },
-        {
-            title: 'Ngày kết thúc',
-            dataIndex: 'endDate',
-            key: 'endDate',
-            width: 150,
-            render: (date) => formatDate(date),
-            sorter: (a, b) => dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
+            width: 90,
+            align: 'center',
+            render: (percent) => <Tag color="green">{percent}%</Tag>,
         },
         {
             title: 'Số lượng',
             dataIndex: 'quantity',
             key: 'quantity',
-            width: 120,
-            sorter: (a, b) => a.quantity - b.quantity,
+            width: 90,
+            align: 'center',
         },
         {
-            title: 'Giá trị áp dụng',
+            title: 'Đơn tối thiểu',
             dataIndex: 'priceOrderActive',
             key: 'priceOrderActive',
-            width: 180,
-            render: (price) => (
-                <span style={{ 
-                    color: price ? '#1890ff' : '#8c8c8c',
-                    fontWeight: price ? '500' : 'normal'
-                }}>
-                    {formatPrice(price)}
-                </span>
-            ),
-            sorter: (a, b) => {
-                const priceA = a.priceOrderActive || 0;
-                const priceB = b.priceOrderActive || 0;
-                return priceA - priceB;
-            },
+            width: 130,
+            render: (price) => formatPrice(price),
+        },
+        {
+            title: 'Ngày bắt đầu',
+            dataIndex: 'startDate',
+            key: 'startDate',
+            width: 120,
+            render: (date) => formatDate(date),
+        },
+        {
+            title: 'Ngày kết thúc',
+            dataIndex: 'endDate',
+            key: 'endDate',
+            width: 120,
+            render: (date) => formatDate(date),
         },
         {
             title: 'Trạng thái',
-            dataIndex: 'status',
             key: 'status',
-            width: 160,
+            width: 120,
+            align: 'center',
             render: (_, record) => {
                 const expired = isExpired(record.endDate);
-                switch (record.status) {
-                    case 'PENDING':
-                        return <Tag color="gold" style={{ borderRadius: '4px', padding: '2px 8px' }}>Chờ duyệt</Tag>;
-                    case 'ACTIVE':
-                        if (expired) {
-                            return <Tag color="orange" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã hết hạn</Tag>;
-                        }
-                        return <Tag color="green" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đang hoạt động</Tag>;
-                    case 'REJECTED':
-                        return <Tag color="red" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã từ chối</Tag>;
-                    case 'PAUSED':
-                        return <Tag color="blue" style={{ borderRadius: '4px', padding: '2px 8px' }}>Đã xóa mềm</Tag>;
-                    default:
-                        return <Tag color="#d9d9d9" style={{ borderRadius: '4px', padding: '2px 8px' }}>Không xác định</Tag>;
+                const approved = record.isApproved ?? record.status === 'ACTIVE';
+                
+                if (!approved || record.status === 'PENDING') {
+                    return <Tag color="orange">Chờ duyệt</Tag>;
                 }
+                if (record.status === 'REJECTED') {
+                    return <Tag color="red">Từ chối</Tag>;
+                }
+                if (record.status === 'PAUSED') {
+                    return <Tag color="default">Tạm dừng</Tag>;
+                }
+                if (expired) {
+                    return <Tag color="red">Hết hạn</Tag>;
+                }
+                // Kiểm tra xem đã đến thời gian bắt đầu chưa
+                if (approved && record.status === 'ACTIVE' && isActive(record)) {
+                    return <Tag color="green">Đang hoạt động</Tag>;
+                }
+                // Đã duyệt nhưng chưa đến thời gian bắt đầu
+                if (approved && record.status === 'ACTIVE' && !isActive(record)) {
+                    return <Tag color="default">Chưa bắt đầu</Tag>;
+                }
+                return <Tag color="green">Đang hoạt động</Tag>;
             },
-        },
-        {
-            title: 'Người tạo',
-            dataIndex: 'createdByName',
-            key: 'createdByName',
-            width: 120,
-            render: (name) => name || '-',
-        },
-        {
-            title: 'Người duyệt',
-            dataIndex: 'approvedByName',
-            key: 'approvedByName',
-            width: 120,
-            render: (name) => name || '-',
         },
         {
             title: 'Thao tác',
             key: 'action',
-            width: 200,
-            fixed: 'right',
-            render: (_, record) => (
-                <Space size="middle">
+            width: 180,
+            render: (_, record) => {
+                const actions = [];
+                const approved = record.isApproved ?? record.status === 'ACTIVE';
+                const isPaused = record.status === 'PAUSED';
+
+                actions.push(
                     <Button
-                        type="primary"
+                        key="detail"
+                        type="link"
+                        size="small"
                         onClick={() => navigate(`/admin/promotions/${record.id}`)}
-                        style={{
-                            backgroundColor: '#1677ff',
-                            borderColor: '#1677ff',
-                            borderRadius: '4px',
-                            fontWeight: 500,
-                        }}
                     >
                         Xem chi tiết
                     </Button>
-                </Space>
-            ),
+                );
+
+                if (!approved) {
+                    actions.push(
+                        <Button
+                            key="approve"
+                            type="primary"
+                            size="small"
+                            style={{ padding: '0 8px' }}
+                            onClick={() => handleApprove(record.id)}
+                        >
+                            Duyệt
+                        </Button>
+                    );
+                } else if (isPaused) {
+                    actions.push(
+                        <Button
+                            key="resume"
+                            size="small"
+                            style={{ padding: '0 8px' }}
+                            onClick={() => handleResume(record.id)}
+                        >
+                            Mở lại
+                        </Button>
+                    );
+                } else {
+                    actions.push(
+                        <Button
+                            key="pause"
+                            danger
+                            size="small"
+                            style={{ padding: '0 8px' }}
+                            onClick={() => handlePause(record.id)}
+                        >
+                            Tạm dừng
+                        </Button>
+                    );
+                }
+
+                actions.push(
+                    <Button
+                        key="deactivate"
+                        danger
+                        type="link"
+                        size="small"
+                        onClick={() => handleDeactivate(record.id)}
+                    >
+                        Xóa
+                    </Button>
+                );
+
+                return (
+                    <Space size={6} wrap>
+                        {actions}
+                    </Space>
+                );
+            },
         },
     ];
 
@@ -494,7 +566,7 @@ const AdminPromotionsPage = () => {
                         },
                         {
                             key: 'active',
-                            label: `Đang hoạt động (${approvedPromotions.length})`,
+                            label: `Đang hoạt động (${activePromotions.length})`,
                         },
                         {
                             key: 'pending',
@@ -590,26 +662,22 @@ const AdminPromotionsPage = () => {
                         />
                     </div>
                 ) : (
-                <div style={{ overflowX: 'auto' }}>
-                    <Table
-                        columns={columns}
-                        dataSource={displayedPromotions}
-                        rowKey="id"
-                        loading={loading}
-                        bordered
-                        scroll={{ x: 1540 }}
-                        style={{
-                            minWidth: '100%',
-                        }}
-                        pagination={{
-                            pageSize: 10,
-                            showSizeChanger: true,
-                            showTotal: (total) => `Tổng ${total} khuyến mãi`,
-                            showQuickJumper: true,
-                            pageSizeOptions: ['10', '20', '50', '100'],
-                        }}
-                    />
-                </div>
+                <Table
+                    columns={columns}
+                    dataSource={displayedPromotions}
+                    rowKey="id"
+                    loading={loading}
+                    bordered
+                    size="small"
+                    style={{ width: '100%' }}
+                    pagination={{
+                        pageSize: 10,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng ${total} khuyến mãi`,
+                        showQuickJumper: true,
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                    }}
+                />
                 )}
             </div>
             <PromotionModal

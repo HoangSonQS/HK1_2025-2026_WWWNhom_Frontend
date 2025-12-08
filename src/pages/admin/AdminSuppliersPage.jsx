@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Popconfirm, message, Tag, Input, Select } from 'antd';
 import { PlusOutlined, EditOutlined, StopOutlined, SearchOutlined } from '@ant-design/icons';
-import { supplierService } from '../../features/supplier/api';
+import { adminSupplierService } from '../../features/supplier/api/adminSupplierService';
 import SupplierModal from './components/SupplierModal';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../utils/constants';
 
 const { Search } = Input;
 const { Option } = Select;
 
 const AdminSuppliersPage = () => {
+  const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,7 +26,7 @@ const AdminSuppliersPage = () => {
   const loadSuppliers = async () => {
     setLoading(true);
     try {
-      const data = await supplierService.getAllSuppliers();
+      const data = await adminSupplierService.getAllSuppliers();
       
       // Sắp xếp theo ID tăng dần
       const sortedSuppliers = [...data].sort((a, b) => {
@@ -35,7 +38,12 @@ const AdminSuppliersPage = () => {
       setSuppliers(sortedSuppliers);
     } catch (err) {
       console.error('Error fetching suppliers:', err);
-      message.error('Không thể tải danh sách nhà cung cấp');
+      if (err.response?.status === 401) {
+        message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+      } else {
+        message.error('Không thể tải danh sách nhà cung cấp');
+      }
     } finally {
       setLoading(false);
     }
@@ -55,12 +63,17 @@ const AdminSuppliersPage = () => {
 
   const handleDeactivate = async (supplier) => {
     try {
-      await supplierService.deactivateSupplier(supplier.id);
+      await adminSupplierService.deactivateSupplier(supplier.id);
       message.success('Vô hiệu hóa nhà cung cấp thành công');
       loadSuppliers();
     } catch (err) {
       console.error('Error deactivating supplier:', err);
-      message.error('Không thể vô hiệu hóa nhà cung cấp');
+      if (err.response?.status === 401) {
+        message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+      } else {
+        message.error('Không thể vô hiệu hóa nhà cung cấp');
+      }
     }
   };
 

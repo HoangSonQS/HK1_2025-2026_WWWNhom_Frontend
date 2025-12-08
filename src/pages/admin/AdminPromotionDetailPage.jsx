@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button, Card, Descriptions, Space, Spin, Tag, message, Popconfirm } from 'antd';
-import { ArrowLeftOutlined, GiftOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, GiftOutlined, CheckOutlined, CloseOutlined, DeleteOutlined, HistoryOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getPromotionById, approvePromotion, deactivatePromotion, pausePromotion, resumePromotion } from '../../features/promotion/api/promotionService';
+import { getPromotionById as getPromotionByIdStaff, approvePromotion as approvePromotionStaff, deactivatePromotion as deactivatePromotionStaff, pausePromotion as pausePromotionStaff, resumePromotion as resumePromotionStaff } from '../../features/promotion/api/staffPromotionService';
+import { adminPromotionService } from '../../features/promotion/api/adminPromotionService';
 
 const formatCurrency = (value) => {
     if (value === null || value === undefined) return 'Không giới hạn';
@@ -21,6 +22,8 @@ const formatDate = (date) => {
 const AdminPromotionDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const isStaffRoute = location.pathname.startsWith('/staff');
     const [promotion, setPromotion] = useState(null);
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
@@ -32,12 +35,17 @@ const AdminPromotionDetailPage = () => {
     const loadPromotion = async () => {
         setLoading(true);
         try {
-            const response = await getPromotionById(id);
-            setPromotion(response.data);
+            if (isStaffRoute) {
+                const response = await getPromotionByIdStaff(id);
+                setPromotion(response.data || response);
+            } else {
+                const data = await adminPromotionService.getById(id);
+                setPromotion(data);
+            }
         } catch (error) {
             console.error('Error loading promotion detail:', error);
             message.error('Không thể tải thông tin khuyến mãi');
-            navigate('/admin/promotions');
+            navigate(isStaffRoute ? '/staff/promotions' : '/admin/promotions');
         } finally {
             setLoading(false);
         }
@@ -46,7 +54,11 @@ const AdminPromotionDetailPage = () => {
     const handleApprove = async () => {
         setActionLoading(true);
         try {
-            await approvePromotion(id);
+            if (isStaffRoute) {
+                await approvePromotionStaff(id);
+            } else {
+                await adminPromotionService.approve(id);
+            }
             message.success('Duyệt khuyến mãi thành công');
             await loadPromotion();
         } catch (error) {
@@ -60,7 +72,11 @@ const AdminPromotionDetailPage = () => {
     const handleReject = async () => {
         setActionLoading(true);
         try {
-            await deactivatePromotion(id);
+            if (isStaffRoute) {
+                await deactivatePromotionStaff(id);
+            } else {
+                await adminPromotionService.deactivate(id);
+            }
             message.success('Đã từ chối khuyến mãi');
             await loadPromotion();
         } catch (error) {
@@ -74,7 +90,11 @@ const AdminPromotionDetailPage = () => {
     const handleSoftDelete = async () => {
         setActionLoading(true);
         try {
-            await pausePromotion(id);
+            if (isStaffRoute) {
+                await pausePromotionStaff(id);
+            } else {
+                await adminPromotionService.pause(id);
+            }
             message.success('Đã xóa mềm khuyến mãi và thông báo đến người dùng');
             await loadPromotion();
         } catch (error) {
@@ -88,7 +108,11 @@ const AdminPromotionDetailPage = () => {
     const handleResume = async () => {
         setActionLoading(true);
         try {
-            await resumePromotion(id);
+            if (isStaffRoute) {
+                await resumePromotionStaff(id);
+            } else {
+                await adminPromotionService.resume(id);
+            }
             message.success('Khuyến mãi đã được kích hoạt lại');
             await loadPromotion();
         } catch (error) {
@@ -109,11 +133,23 @@ const AdminPromotionDetailPage = () => {
         return null;
     }
 
+    const handleViewActivity = () => {
+        const basePath = isStaffRoute ? '/staff/promotions' : '/admin/promotions';
+        navigate(`${basePath}?tab=logs&promotionId=${id}`);
+    };
+
     return (
         <div>
             <Space style={{ marginBottom: 24 }}>
                 <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
                     Quay lại
+                </Button>
+                <Button 
+                    icon={<HistoryOutlined />} 
+                    onClick={handleViewActivity}
+                    type="default"
+                >
+                    Xem hoạt động
                 </Button>
             </Space>
 

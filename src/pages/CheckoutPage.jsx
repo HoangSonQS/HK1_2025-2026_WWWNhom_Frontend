@@ -183,11 +183,31 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (!cart) {
+      message.error("Không thể áp dụng mã khuyến mãi khi giỏ hàng trống");
+      return;
+    }
+
     setValidatingPromotion(true);
     setPromotionError("");
     try {
       const response = await validatePromotionCode(promotionCode.trim());
-      setAppliedPromotion(response.data);
+      const promotion = response.data;
+
+      // Kiểm tra giá trị đơn hàng tối thiểu
+      const minOrder = promotion?.priceOrderActive || 0;
+      const subtotal = cart.totalPrice || 0;
+      if (minOrder > 0 && subtotal < minOrder) {
+        setAppliedPromotion(null);
+        setPromotionError(
+          `Đơn tối thiểu ${minOrder.toLocaleString(
+            "vi-VN"
+          )} đ mới áp dụng được mã này`
+        );
+        return;
+      }
+
+      setAppliedPromotion(promotion);
       setPromotionError("");
     } catch (error) {
       setAppliedPromotion(null);

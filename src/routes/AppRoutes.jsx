@@ -25,6 +25,7 @@ import AdminPromotionDetailPage from '../pages/admin/AdminPromotionDetailPage';
 import AdminPromotionsPage from '../pages/admin/AdminPromotionsPage';
 import AdminSuppliersPage from '../pages/admin/AdminSuppliersPage';
 import AdminImportStocksPage from '../pages/admin/AdminImportStocksPage';
+import AdminMonthlyStatsPage from '../pages/admin/AdminMonthlyStatsPage';
 import CartPage from '../pages/CartPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import MyOrdersPage from '../pages/MyOrdersPage';
@@ -56,6 +57,7 @@ const AppRoutes = () => {
         <Route path="promotions/:id" element={<AdminPromotionDetailPage />} />
         <Route path="suppliers" element={<AdminSuppliersPage />} />
         <Route path="import-stocks" element={<AdminImportStocksPage />} />
+        <Route path="statistics/monthly" element={<AdminMonthlyStatsPage />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
       

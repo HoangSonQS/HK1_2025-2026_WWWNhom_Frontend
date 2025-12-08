@@ -84,6 +84,8 @@ const AdminHome = () => {
                 <Col xs={24} sm={12} md={12}>
                     <Card
                         bordered={false}
+                        hoverable
+                        onClick={() => navigate('/admin/statistics/monthly')}
                         style={{
                             borderRadius: 12,
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -118,6 +120,8 @@ const AdminHome = () => {
                 <Col xs={24} sm={12} md={12}>
                     <Card
                         bordered={false}
+                        hoverable
+                        onClick={() => navigate('/admin/statistics/monthly')}
                         style={{
                             borderRadius: 12,
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -231,6 +235,7 @@ const AdminHome = () => {
                     </Card>
                 </Col>
             </Row>
+
         </div>
     );
 };

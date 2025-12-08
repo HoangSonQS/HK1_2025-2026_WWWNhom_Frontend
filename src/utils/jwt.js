@@ -1,10 +1,23 @@
 /**
  * JWT Utilities - Decode và kiểm tra JWT token
+ * Hỗ trợ jwtToken (customer), staffToken (staff), và adminToken (admin)
  */
 
-export const decodeJWT = (token = null) => {
+export const decodeJWT = (token = null, useAdminToken = false, useStaffToken = false) => {
   try {
-    const jwtToken = token || localStorage.getItem("jwtToken");
+    let jwtToken = token;
+    if (!jwtToken) {
+      // Nếu useAdminToken = true, CHỈ lấy adminToken
+      if (useAdminToken) {
+        jwtToken = localStorage.getItem("adminToken");
+      } else if (useStaffToken) {
+        // Nếu useStaffToken = true, CHỈ lấy staffToken
+        jwtToken = localStorage.getItem("staffToken");
+      } else {
+        // Nếu cả hai đều false, CHỈ lấy jwtToken (customer)
+        jwtToken = localStorage.getItem("jwtToken");
+      }
+    }
     if (!jwtToken) {
       return null;
     }
@@ -23,8 +36,8 @@ export const decodeJWT = (token = null) => {
   }
 };
 
-export const checkAdminRole = () => {
-  const decoded = decodeJWT();
+export const checkAdminRole = (useAdminToken = false) => {
+  const decoded = decodeJWT(null, useAdminToken);
   if (!decoded) {
     console.error('❌ Cannot decode JWT token');
     return false;
@@ -52,8 +65,8 @@ export const checkAdminRole = () => {
   return hasAdmin;
 };
 
-export const checkSellerStaffRole = () => {
-  const decoded = decodeJWT();
+export const checkSellerStaffRole = (useStaffToken = false) => {
+  const decoded = decodeJWT(null, false, useStaffToken);
   if (!decoded || !decoded.scope) return false;
   
   // Xử lý scope có thể là string hoặc array
@@ -67,8 +80,8 @@ export const checkSellerStaffRole = () => {
   return scopeString.toUpperCase().includes("SELLER_STAFF");
 };
 
-export const checkWarehouseStaffRole = () => {
-  const decoded = decodeJWT();
+export const checkWarehouseStaffRole = (useStaffToken = false) => {
+  const decoded = decodeJWT(null, false, useStaffToken);
   if (!decoded || !decoded.scope) return false;
   
   // Xử lý scope có thể là string hoặc array
@@ -102,7 +115,8 @@ export const decodeToken = (token) => {
 };
 
 export const isAdminOrStaff = () => {
-  const decoded = decodeJWT();
+  // CHỈ đọc từ jwtToken (useAdminToken = false), không đọc adminToken
+  const decoded = decodeJWT(null, false);
   if (!decoded || !decoded.scope) return false;
   
   // Xử lý scope có thể là string hoặc array

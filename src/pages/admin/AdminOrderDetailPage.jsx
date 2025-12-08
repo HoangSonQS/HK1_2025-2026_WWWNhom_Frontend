@@ -28,7 +28,7 @@ import {
 import {
   getOrderById,
   updateOrderStatus,
-} from "../../features/order/api/orderService";
+} from "../../features/order/api/adminOrderService";
 import { getImageUrl } from "../../utils/imageUtils";
 
 const { Title, Text } = Typography;
@@ -123,8 +123,18 @@ const AdminOrderDetailPage = () => {
     }).format(amount);
   };
 
-  const handleUpdateStatus = () => {
-    if (!order || !selectedStatus) return;
+  const handleUpdateStatus = async () => {
+    if (!order || !selectedStatus) {
+      message.warning("Vui lòng chọn trạng thái mới");
+      return;
+    }
+
+    // Kiểm tra nếu trạng thái không thay đổi
+    if (order.status === selectedStatus) {
+      message.info("Trạng thái không thay đổi");
+      setStatusModalVisible(false);
+      return;
+    }
 
     // Kiểm tra nếu đơn đã bị hủy, đã hoàn thành hoặc đã trả lại
     if (order.status === "CANCELLED") {
@@ -143,31 +153,31 @@ const AdminOrderDetailPage = () => {
       return;
     }
 
-    Modal.confirm({
-      title: "Xác nhận thay đổi trạng thái",
-      content: `Bạn có chắc chắn muốn thay đổi trạng thái đơn hàng #${order.id} từ "${getStatusText(order.status)}" sang "${getStatusText(selectedStatus)}"?`,
-      okText: "Xác nhận",
-      cancelText: "Hủy",
-      onOk: async () => {
-        setActionLoading(true);
-        try {
-          const response = await updateOrderStatus(order.id, selectedStatus);
-          setOrder(response.data);
-          setStatusModalVisible(false);
-          message.success("Trạng thái đơn hàng đã được cập nhật thành công");
-          // Trigger event để cập nhật notification count
-          window.dispatchEvent(new CustomEvent("notificationUpdated"));
-        } catch (error) {
-          if (error.response?.data?.message) {
-            message.error(error.response.data.message);
-          } else {
-            message.error("Không thể cập nhật trạng thái đơn hàng");
-          }
-        } finally {
-          setActionLoading(false);
-        }
-      },
-    });
+    // Gọi API cập nhật trạng thái
+    setActionLoading(true);
+    try {
+      console.log('🔄 Updating order status:', { orderId: order.id, newStatus: selectedStatus });
+      const response = await updateOrderStatus(order.id, selectedStatus);
+      console.log('✅ Order status updated:', response.data);
+      
+      setOrder(response.data);
+      setStatusModalVisible(false);
+      message.success("Trạng thái đơn hàng đã được cập nhật thành công");
+      // Trigger event để cập nhật notification count
+      window.dispatchEvent(new CustomEvent("notificationUpdated"));
+    } catch (error) {
+      console.error('❌ Error updating order status:', error);
+      if (error.response?.status === 401) {
+        message.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        navigate("/admin/login", { replace: true });
+      } else if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error("Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {

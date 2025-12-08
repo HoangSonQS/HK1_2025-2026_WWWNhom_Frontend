@@ -8,6 +8,14 @@
 .admin-sider {
     background: #fff;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    /* Ẩn scrollbar nhưng vẫn giữ chức năng scroll */
+    -ms-overflow-style: none; /* IE và Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Ẩn scrollbar cho Chrome, Safari, Edge */
+.admin-sider::-webkit-scrollbar {
+    display: none;
 }
 
 .admin-menu {

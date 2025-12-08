@@ -11,6 +11,7 @@ import {
   Divider,
   Space,
   Modal,
+  Input,
 } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -29,8 +30,8 @@ import Header from "../components/Header";
 import {
   getOrderById,
   cancelOrder,
-  confirmReceived,
 } from "../features/order/api/orderService";
+import { returnRequestService } from "../features/returnRequest/api/returnRequestService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
 import "../styles/cart.css";
@@ -44,6 +45,9 @@ const OrderDetailPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [returnSubmitting, setReturnSubmitting] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -69,6 +73,30 @@ const OrderDetailPage = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateReturn = async () => {
+    if (!order) return;
+    if (!returnReason.trim()) {
+      message.warning("Vui lòng nhập lý do trả hàng");
+      return;
+    }
+    setReturnSubmitting(true);
+    try {
+      await returnRequestService.create({
+        orderId: order.id,
+        reason: returnReason.trim(),
+      });
+      message.success("Đã gửi yêu cầu trả hàng");
+      setReturnModalOpen(false);
+      setReturnReason("");
+      loadOrder();
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Gửi yêu cầu thất bại";
+      message.error(errMsg);
+    } finally {
+      setReturnSubmitting(false);
     }
   };
 
@@ -150,32 +178,7 @@ const OrderDetailPage = () => {
     });
   };
 
-  const handleConfirmReceived = () => {
-    if (!order) return;
-
-    Modal.confirm({
-      title: "Xác nhận đã nhận hàng",
-      content: `Bạn có chắc chắn đã nhận được đơn hàng #${order.id}?`,
-      okText: "Xác nhận",
-      cancelText: "Hủy",
-      onOk: async () => {
-        setActionLoading(true);
-        try {
-          const response = await confirmReceived(order.id);
-          setOrder(response.data);
-          message.success("Đã xác nhận nhận hàng thành công");
-        } catch (error) {
-          if (error.response?.data?.message) {
-            message.error(error.response.data.message);
-          } else {
-            message.error("Không thể xác nhận nhận hàng");
-          }
-        } finally {
-          setActionLoading(false);
-        }
-      },
-    });
-  };
+  // Hàm handleConfirmReceived đã bị xóa - Trạng thái đơn hàng chỉ được duyệt ở trang admin
 
   if (loading) {
     return (
@@ -242,16 +245,16 @@ const OrderDetailPage = () => {
                   Hủy đơn
                 </Button>
               )}
-              {order.status === "DELIVERING" && (
+              {order.status === "COMPLETED" && (
                 <Button
                   type="primary"
                   size="large"
-                  onClick={handleConfirmReceived}
-                  loading={actionLoading}
+                  onClick={() => setReturnModalOpen(true)}
                 >
-                  Đã nhận
+                  Yêu cầu trả hàng
                 </Button>
               )}
+              {/* Button "Đã nhận" đã bị xóa - Trạng thái đơn hàng chỉ được duyệt ở trang admin */}
             </Space>
           </div>
 
@@ -632,9 +635,45 @@ const OrderDetailPage = () => {
             </Space>
           </Card>
         </div>
+        <ReturnRequestModal
+          open={returnModalOpen}
+          onCancel={() => setReturnModalOpen(false)}
+          onSubmit={handleCreateReturn}
+          loading={returnSubmitting}
+          reason={returnReason}
+          setReason={setReturnReason}
+        />
       </Content>
     </Layout>
   );
 };
+
+// Modal Yêu cầu trả hàng
+const ReturnRequestModal = ({
+  open,
+  onCancel,
+  onSubmit,
+  loading,
+  reason,
+  setReason,
+}) => (
+  <Modal
+    title="Yêu cầu trả hàng"
+    open={open}
+    onCancel={onCancel}
+    onOk={onSubmit}
+    okText="Gửi yêu cầu"
+    confirmLoading={loading}
+    destroyOnClose
+  >
+    <p>Vui lòng nhập lý do trả hàng. Đơn cần ở trạng thái ĐÃ HOÀN THÀNH.</p>
+    <Input.TextArea
+      rows={4}
+      value={reason}
+      onChange={(e) => setReason(e.target.value)}
+      placeholder="Mô tả lý do (hàng lỗi, thiếu, nhầm...)"
+    />
+  </Modal>
+);
 
 export default OrderDetailPage;

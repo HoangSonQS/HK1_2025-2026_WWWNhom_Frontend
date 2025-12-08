@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Button, message, Spin, DatePicker } from 'antd';
-import { getPromotionById, createPromotion } from '../../../features/promotion/api/promotionService';
+import { adminPromotionService } from '../../../features/promotion/api/adminPromotionService';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -25,8 +25,7 @@ const PromotionModal = ({ open, onCancel, onSuccess, promotionId = null }) => {
     const loadPromotion = async () => {
         setLoadingPromotion(true);
         try {
-            const response = await getPromotionById(promotionId);
-            const promotion = response.data;
+            const promotion = await adminPromotionService.getById(promotionId);
             
             form.setFieldsValue({
                 name: promotion.name,
@@ -67,8 +66,7 @@ const PromotionModal = ({ open, onCancel, onSuccess, promotionId = null }) => {
                 setLoading(false);
                 return;
             } else {
-                const response = await createPromotion(promotionData);
-                updatedPromotion = response.data;
+                updatedPromotion = await adminPromotionService.create(promotionData);
                 message.success('Tạo khuyến mãi thành công!');
             }
             

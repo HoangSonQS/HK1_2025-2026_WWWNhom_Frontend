@@ -67,7 +67,7 @@ const BookDetailPage = () => {
                 <div className="book-detail-container">
             <Button
                 icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/books')}
+                onClick={() => navigate('-1')}
                 className="back-button"
             >
                 Quay lại

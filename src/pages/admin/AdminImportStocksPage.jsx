@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, message, Tag, Descriptions } from 'antd';
 import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
-import { importStockService } from '../../features/importStock/api';
+import { adminImportStockService } from '../../features/importStock/api/adminImportStockService';
+import { staffImportStockService } from '../../features/importStock/api/staffImportStockService';
 import ImportStockModal from './components/ImportStockModal';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ROUTES } from '../../utils/constants';
 
 const AdminImportStocksPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [importStocks, setImportStocks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,7 +21,10 @@ const AdminImportStocksPage = () => {
   const loadImportStocks = async () => {
     setLoading(true);
     try {
-      const data = await importStockService.getAllImportStocks();
+      const isStaffRoute = location.pathname.startsWith('/staff');
+      const service = isStaffRoute ? staffImportStockService : adminImportStockService;
+
+      const data = await service.getAllImportStocks();
       
       // Sắp xếp theo ID giảm dần (mới nhất lên đầu)
       const sortedData = [...data].sort((a, b) => {
@@ -28,7 +36,16 @@ const AdminImportStocksPage = () => {
       setImportStocks(sortedData);
     } catch (err) {
       console.error('Error fetching import stocks:', err);
-      message.error('Không thể tải danh sách phiếu nhập kho');
+      if (err.response?.status === 401) {
+        message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        if (location.pathname.startsWith('/staff')) {
+          navigate(ROUTES.STAFF_LOGIN, { replace: true });
+        } else {
+          navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+        }
+      } else {
+        message.error('Không thể tải danh sách phiếu nhập kho');
+      }
     } finally {
       setLoading(false);
     }
@@ -236,6 +253,7 @@ const AdminImportStocksPage = () => {
         isOpen={isModalOpen}
         onClose={handleModalCancel}
         onSuccess={handleModalSuccess}
+        isStaffRoute={location.pathname.startsWith('/staff')}
       />
     </div>
   );

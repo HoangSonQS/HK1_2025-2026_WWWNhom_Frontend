@@ -11,7 +11,9 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/auth/login',
   ADMIN_LOGIN: '/admin/login',
+  STAFF_LOGIN: '/staff/login',
   ADMIN_DASHBOARD: '/admin/dashboard',
+  STAFF_DASHBOARD: '/staff/dashboard',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/password/forgot',
   RESET_PASSWORD: '/password/reset',
@@ -32,8 +34,13 @@ export const ROUTES = {
 };
 
 export const STORAGE_KEYS = {
-  JWT_TOKEN: 'jwtToken',
+  JWT_TOKEN: 'jwtToken', // Token cho public (customer only)
+  STAFF_TOKEN: 'staffToken', // Token riêng cho staff (seller, warehouse)
+  ADMIN_TOKEN: 'adminToken', // Token riêng cho admin
   REFRESH_TOKEN: 'refreshToken',
+  STAFF_REFRESH_TOKEN: 'staffRefreshToken', // Refresh token riêng cho staff
+  ADMIN_REFRESH_TOKEN: 'adminRefreshToken', // Refresh token riêng cho admin
   RESET_USERNAME: 'resetUsername',
+  RETURN_URL: 'returnUrl', // Key for storing return URL
 };
 

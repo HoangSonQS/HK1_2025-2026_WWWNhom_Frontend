@@ -284,7 +284,7 @@ const AdminAccountsPage = () => {
                             </Tag>
                         ))}
                         </Space>
-                        {checkAdminRole() && (
+                        {checkAdminRole(true) && (
                             <Button 
                                 type="link" 
                                 size="small" 
@@ -327,7 +327,7 @@ const AdminAccountsPage = () => {
             render: (_, record) => {
                 const jwtData = decodeJWT();
                 const isMyAccount = jwtData && jwtData.sub === record.username;
-                const userIsAdmin = checkAdminRole();
+                const userIsAdmin = checkAdminRole(true);
                 
                 if (userIsAdmin || isMyAccount) {
                     return (
@@ -355,7 +355,7 @@ const AdminAccountsPage = () => {
                 marginBottom: 24 
             }}>
                 <h1 style={{ margin: 0 }}>Quản lý Tài khoản</h1>
-                {checkAdminRole() && (
+                {checkAdminRole(true) && (
                     <Button
                         type="primary"
                         icon={<UserAddOutlined />}

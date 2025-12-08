@@ -1,11 +1,11 @@
-import apiClient from '../../../services/apiClient';
+import adminApiClient from '../../../services/adminApiClient';
 
 export const getDashboardSummary = () => {
-  return apiClient.get('admin/statistics/summary');
+  return adminApiClient.get('admin/statistics/summary');
 };
 
 export const getTopSellingProducts = () => {
-  return apiClient.get('admin/statistics/top-products');
+  return adminApiClient.get('admin/statistics/top-products');
 };
 
 

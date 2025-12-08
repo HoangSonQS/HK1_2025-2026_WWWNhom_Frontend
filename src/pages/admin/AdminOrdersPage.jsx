@@ -12,7 +12,7 @@ import {
   Tabs,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { getAllOrders } from "../../features/order/api/orderService";
+import { getAllOrders } from "../../features/order/api/adminOrderService";
 import { ShoppingOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;

@@ -18,7 +18,6 @@ import Header from "../components/Header";
 import {
   getMyOrders,
   cancelOrder,
-  confirmReceived,
 } from "../features/order/api/orderService";
 import { ROUTES } from "../utils/constants";
 import "../styles/cart.css";
@@ -149,35 +148,7 @@ const MyOrdersPage = () => {
     });
   };
 
-  const handleConfirmReceived = (orderId) => {
-    Modal.confirm({
-      title: "Xác nhận đã nhận hàng",
-      content: `Bạn có chắc chắn đã nhận được đơn hàng #${orderId}?`,
-      okText: "Xác nhận",
-      cancelText: "Hủy",
-      onOk: async () => {
-        setActionLoading((prev) => ({ ...prev, [orderId]: true }));
-        try {
-          const response = await confirmReceived(orderId);
-          // Cập nhật order trong danh sách
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-              order.id === orderId ? response.data : order
-            )
-          );
-          message.success("Đã xác nhận nhận hàng thành công");
-        } catch (error) {
-          if (error.response?.data?.message) {
-            message.error(error.response.data.message);
-          } else {
-            message.error("Không thể xác nhận nhận hàng");
-          }
-        } finally {
-          setActionLoading((prev) => ({ ...prev, [orderId]: false }));
-        }
-      },
-    });
-  };
+  // Hàm handleConfirmReceived đã bị xóa - Trạng thái đơn hàng chỉ được duyệt ở trang admin
 
   const tabItems = [
     {
@@ -277,17 +248,8 @@ const MyOrdersPage = () => {
               Hủy đơn
             </Button>
           )}
-          {record.status === "DELIVERING" && (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleConfirmReceived(record.id)}
-              loading={actionLoading[record.id]}
-            >
-              Đã nhận
-            </Button>
-          )}
-          {record.status !== "PENDING" && record.status !== "DELIVERING" && (
+          {/* Button "Đã nhận" đã bị xóa - Trạng thái đơn hàng chỉ được duyệt ở trang admin */}
+          {record.status !== "PENDING" && (
             <Text type="secondary">-</Text>
           )}
         </>

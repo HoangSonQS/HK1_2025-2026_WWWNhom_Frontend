@@ -125,6 +125,11 @@ const StaffPromotionModal = ({ open, onCancel, onSuccess, promotionId = null }) 
                     <Form.Item
                         name="discountPercent"
                         label="Phần trăm giảm giá"
+                        normalize={(value) => {
+                            if (value === '' || value === null || value === undefined) return undefined;
+                            const num = Number(value);
+                            return Number.isNaN(num) ? undefined : num;
+                        }}
                         rules={[
                             { required: true, message: 'Vui lòng nhập phần trăm giảm giá!' },
                             { type: 'number', min: 1, max: 100, message: 'Phần trăm giảm giá phải từ 1 đến 100!' }
@@ -136,6 +141,17 @@ const StaffPromotionModal = ({ open, onCancel, onSuccess, promotionId = null }) 
                                 placeholder="Phần trăm giảm giá (1-100)"
                                 min={1}
                                 max={100}
+                                step={1}
+                                formatter={(value) =>
+                                    value === undefined || value === null || value === ''
+                                        ? ''
+                                        : `${value}`
+                                }
+                                parser={(value) => {
+                                    const cleaned = (value || '').replace(/[^\d]/g, '');
+                                    if (!cleaned) return undefined;
+                                    return Number(cleaned);
+                                }}
                             />
                             <Input
                                 style={{ width: 50, textAlign: 'center', pointerEvents: 'none', backgroundColor: '#f5f5f5' }}

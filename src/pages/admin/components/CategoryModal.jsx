@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, message, Spin } from 'antd';
-import { getCategoryById, createCategory, updateCategory } from '../../../features/category/api/categoryService';
+import { useLocation } from 'react-router-dom';
+import { getCategoryById as getCategoryByIdPublic, createCategory as createCategoryPublic, updateCategory as updateCategoryPublic } from '../../../features/category/api/categoryService';
+import { getCategoryById as getCategoryByIdAdmin, createCategory as createCategoryAdmin, updateCategory as updateCategoryAdmin } from '../../../features/category/api/adminCategoryService';
+import { getCategoryById as getCategoryByIdStaff, createCategory as createCategoryStaff, updateCategory as updateCategoryStaff } from '../../../features/category/api/staffCategoryService';
 
 const CategoryModal = ({ open, onCancel, onSuccess, categoryId = null }) => {
     const [form] = Form.useForm();
+    const location = useLocation();
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    const isStaffRoute = location.pathname.startsWith('/staff');
     const [loading, setLoading] = useState(false);
     const [loadingCategory, setLoadingCategory] = useState(false);
 
@@ -22,7 +28,11 @@ const CategoryModal = ({ open, onCancel, onSuccess, categoryId = null }) => {
     const loadCategory = async () => {
         setLoadingCategory(true);
         try {
-            const response = await getCategoryById(categoryId);
+            let serviceGet = getCategoryByIdPublic;
+            if (isAdminRoute) serviceGet = getCategoryByIdAdmin;
+            else if (isStaffRoute) serviceGet = getCategoryByIdStaff;
+
+            const response = await serviceGet(categoryId);
             const category = response.data;
             
             form.setFieldsValue({
@@ -44,12 +54,15 @@ const CategoryModal = ({ open, onCancel, onSuccess, categoryId = null }) => {
             };
 
             let updatedCategory = null;
+            const serviceCreate = isAdminRoute ? createCategoryAdmin : isStaffRoute ? createCategoryStaff : createCategoryPublic;
+            const serviceUpdate = isAdminRoute ? updateCategoryAdmin : isStaffRoute ? updateCategoryStaff : updateCategoryPublic;
+
             if (isEditMode) {
-                const response = await updateCategory(categoryId, categoryData);
+                const response = await serviceUpdate(categoryId, categoryData);
                 updatedCategory = response.data;
                 message.success('Cập nhật thể loại thành công!');
             } else {
-                const response = await createCategory(categoryData);
+                const response = await serviceCreate(categoryData);
                 updatedCategory = response.data;
                 message.success('Thêm thể loại thành công!');
             }

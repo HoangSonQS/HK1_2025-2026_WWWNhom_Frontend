@@ -70,9 +70,15 @@ const CartPage = () => {
     }
   };
 
-  const handleUpdateQuantity = async (cartItemId, newQuantity) => {
+  const handleUpdateQuantity = async (cartItemId, newQuantity, stockQuantity) => {
     if (newQuantity < 1) {
       message.warning("Số lượng phải lớn hơn 0");
+      return;
+    }
+
+    // Chặn client-side nếu vượt tồn kho
+    if (stockQuantity !== undefined && stockQuantity !== null && newQuantity > stockQuantity) {
+      message.warning("Vượt quá tồn kho hiện có");
       return;
     }
 
@@ -237,7 +243,13 @@ const CartPage = () => {
       message.warning("Giỏ hàng trống");
       return;
     }
-    navigate(ROUTES.CHECKOUT);
+    if (selectedItems.size === 0) {
+      message.warning("Vui lòng chọn sản phẩm để thanh toán");
+      return;
+    }
+    navigate(ROUTES.CHECKOUT, {
+      state: { selectedItemIds: Array.from(selectedItems) },
+    });
   };
 
   if (loading && !cart) {
@@ -255,6 +267,16 @@ const CartPage = () => {
   }
 
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
+  const selectedList =
+    cart?.items?.filter((it) => selectedItems.has(it.cartItemId)) || [];
+  const selectedTotal = selectedList.reduce(
+    (sum, item) => sum + item.bookPrice * item.quantity,
+    0
+  );
+  const selectedQuantity = selectedList.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   return (
     <Layout className="cart-layout">
@@ -408,7 +430,8 @@ const CartPage = () => {
                               onClick={() =>
                                 handleUpdateQuantity(
                                   item.cartItemId,
-                                  item.quantity - 1
+                                  item.quantity - 1,
+                                  item.bookStockQuantity
                                 )
                               }
                               disabled={
@@ -418,11 +441,15 @@ const CartPage = () => {
                             />
                             <InputNumber
                               min={1}
-                              max={item.bookStockQuantity}
+                              max={item.bookStockQuantity ?? 999}
                               value={item.quantity}
                               onChange={(value) => {
                                 if (value && value > 0) {
-                                  handleUpdateQuantity(item.cartItemId, value);
+                                  handleUpdateQuantity(
+                                    item.cartItemId,
+                                    value,
+                                    item.bookStockQuantity
+                                  );
                                 }
                               }}
                               disabled={updatingItems.has(item.cartItemId)}
@@ -434,12 +461,16 @@ const CartPage = () => {
                               onClick={() =>
                                 handleUpdateQuantity(
                                   item.cartItemId,
-                                  item.quantity + 1
+                                  item.quantity + 1,
+                                  item.bookStockQuantity
                                 )
                               }
                               disabled={
                                 updatingItems.has(item.cartItemId) ||
-                                item.quantity >= (item.bookStockQuantity || 999)
+                                (item.bookStockQuantity !== undefined &&
+                                  item.bookStockQuantity !== null &&
+                                  (item.bookStockQuantity <= 0 ||
+                                    item.quantity >= item.bookStockQuantity))
                               }
                             />
                           </Space>
@@ -484,13 +515,13 @@ const CartPage = () => {
                   <div className="summary-row">
                     <Text>Số lượng sản phẩm:</Text>
                     <Text strong>
-                      {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                      {selectedQuantity}
                     </Text>
                   </div>
                   <div className="summary-row">
                     <Text>Tổng tiền:</Text>
                     <Text strong style={{ fontSize: 20, color: "#f5222d" }}>
-                      {cart.totalPrice.toLocaleString("vi-VN")} đ
+                      {selectedTotal.toLocaleString("vi-VN")} đ
                     </Text>
                   </div>
                   <Divider />

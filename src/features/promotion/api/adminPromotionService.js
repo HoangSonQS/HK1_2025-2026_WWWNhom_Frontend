@@ -32,7 +32,8 @@ export const adminPromotionService = {
     return res.data;
   },
   deactivate: async (id) => {
-    const res = await adminApiClient.put(`${PROMOTION_API}/${id}/deactivate`);
+    // Backend dùng DELETE /promotions/{id} để deactivate
+    const res = await adminApiClient.delete(`${PROMOTION_API}/${id}`);
     return res.data;
   },
   delete: async (id) => {

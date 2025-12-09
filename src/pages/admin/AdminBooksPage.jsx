@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Popconfirm, message, Image } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getAllBooks, deleteBook } from '../../features/book/api/bookService';
+import { getAllBooks, deleteBook } from '../../features/book/api/adminBookService';
 import { getImageUrl } from '../../utils/imageUtils';
 import BookModal from './components/BookModal';
 
@@ -10,6 +10,8 @@ const AdminBooksPage = () => {
     const [loading, setLoading] = useState(false);
     const [bookModalOpen, setBookModalOpen] = useState(false);
     const [editingBookId, setEditingBookId] = useState(null);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         loadBooks();
@@ -232,9 +234,15 @@ const AdminBooksPage = () => {
                 rowKey="id"
                 loading={loading}
                 pagination={{
-                    pageSize: 10,
+                    current: currentPage,
+                    pageSize,
                     showSizeChanger: true,
+                    pageSizeOptions: [10, 20, 50, 100],
                     showTotal: (total) => `Tổng ${total} sách`,
+                    onChange: (page, size) => {
+                        setCurrentPage(page);
+                        setPageSize(size);
+                    },
                 }}
             />
             <BookModal

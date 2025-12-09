@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Card, Upload, Table, Tag, message, Space, Button, Alert } from 'antd';
 import { UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { staffStockCheckService } from '../../features/stockCheck/api/staffStockCheckService';
-import { checkWarehouseStaffRole } from '../../utils/jwt';
+import { checkWarehouseStaffRole, checkAdminRole } from '../../utils/jwt';
 
 const StaffStockCheckPage = () => {
-  const isWarehouse = checkWarehouseStaffRole(true);
+  const isWarehouseOrAdmin = checkWarehouseStaffRole(true) || checkAdminRole(true);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -31,8 +31,8 @@ const StaffStockCheckPage = () => {
     accept: '.csv',
     showUploadList: false,
     customRequest: async ({ file, onSuccess, onError }) => {
-      if (!isWarehouse) {
-        message.error('Chức năng chỉ dành cho nhân viên kho');
+      if (!isWarehouseOrAdmin) {
+        message.error('Chức năng chỉ dành cho nhân viên kho hoặc admin');
         onError(new Error('not warehouse'));
         return;
       }
@@ -52,8 +52,8 @@ const StaffStockCheckPage = () => {
     },
   };
 
-  if (!isWarehouse) {
-    return <Alert type="error" message="Chức năng chỉ dành cho nhân viên kho" showIcon />;
+  if (!isWarehouseOrAdmin) {
+    return <Alert type="error" message="Chức năng chỉ dành cho nhân viên kho hoặc admin" showIcon />;
   }
 
   return (

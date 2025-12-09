@@ -156,6 +156,8 @@
     min-height: 100vh;
     padding: 24px;
     background: #f5f5f5;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .back-button {
@@ -166,80 +168,264 @@
 .book-detail-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
 }
 
-.book-detail-content {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
+.book-detail-card .ant-card-body {
+    padding: 32px;
 }
 
-.book-detail-image {
-    flex: 0 0 300px;
-}
-
-.book-detail-image img {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.book-detail-info {
-    flex: 1;
-    min-width: 300px;
-}
-
-.book-detail-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 24px;
-}
-
-.book-detail-meta {
+/* Cột trái - Hình ảnh */
+.book-image-section {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
-.book-detail-author,
-.book-detail-price,
-.book-detail-quantity {
+.book-main-image {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.book-main-image img {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Action Buttons */
+.book-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.add-to-cart-btn .ant-btn {
+    background: #ffffff;
+    border: 2px solid #ff4d4f;
+    color: #ff4d4f;
+    height: 48px;
     font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.add-to-cart-btn .ant-btn:hover {
+    background: #ff4d4f;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+}
+
+.buy-now-btn .ant-btn {
+    background: #ff4d4f;
+    border: 2px solid #ff4d4f;
+    color: #ffffff;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.buy-now-btn .ant-btn:hover {
+    background: #ff7875;
+    border-color: #ff7875;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
+}
+
+/* Policy Card */
+.policy-card {
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+    margin-top: 8px;
+}
+
+.policy-card .ant-card-body {
+    padding: 16px;
+}
+
+.policy-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.policy-title svg {
+    color: #ff4d4f;
+}
+
+.policy-item {
+    font-size: 14px;
     color: #666;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     line-height: 1.6;
 }
 
-.book-detail-author strong,
-.book-detail-price strong,
-.book-detail-quantity strong {
+.policy-item:last-child {
+    margin-bottom: 0;
+}
+
+.policy-item svg {
+    color: #52c41a;
+    font-size: 16px;
+}
+
+/* Cột phải - Thông tin */
+.book-info-section {
+    padding-left: 0;
+}
+
+.book-detail-title {
+    font-size: 28px;
+    font-weight: 700;
     color: #333;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.book-basic-info {
+    margin-bottom: 24px;
+}
+
+.book-categories {
+    margin-bottom: 16px;
+}
+
+.category-tag {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    padding: 4px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.book-price-section {
+    margin-bottom: 12px;
+}
+
+.price-label {
+    font-size: 16px;
+    color: #666;
+    margin-right: 8px;
+}
+
+.price-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ff4d4f;
+}
+
+.book-stock {
+    margin-top: 8px;
+}
+
+.stock-label {
+    font-size: 14px;
+    color: #666;
+    margin-right: 8px;
+}
+
+.stock-value {
+    font-size: 14px;
     font-weight: 600;
 }
 
-.book-detail-price {
-    color: #ff6b35;
-    font-size: 24px;
-    font-weight: 700;
+.stock-value.in-stock {
+    color: #52c41a;
 }
 
-.book-detail-categories {
-    margin-top: 8px;
+.stock-value.out-of-stock {
+    color: #ff4d4f;
 }
 
-.categories-tags {
-    margin-top: 8px;
+/* Section Titles */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* Detail Info Table */
+.book-detail-info-section {
+    margin-top: 24px;
+}
+
+.detail-info-table {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detail-row {
+    display: flex;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    min-width: 180px;
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+}
+
+.detail-value {
+    flex: 1;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Description Section */
+.book-description-section {
+    margin-top: 24px;
+}
+
+.book-description {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #555;
+    text-align: justify;
+    white-space: pre-wrap;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .books-page-container {
         padding: 16px;
+    }
+
+    .book-detail-container {
+        padding: 16px;
+    }
+
+    .book-detail-card .ant-card-body {
+        padding: 20px;
     }
 
     .books-page-title {
@@ -254,17 +440,72 @@
         height: 240px;
     }
 
-    .book-detail-content {
-        flex-direction: column;
+    .book-main-image {
+        min-height: 300px;
+        padding: 16px;
     }
 
-    .book-detail-image {
-        flex: 1;
-        text-align: center;
+    .book-main-image img {
+        max-width: 250px;
     }
 
     .book-detail-title {
+        font-size: 22px;
+    }
+
+    .price-value {
         font-size: 24px;
+    }
+
+    .detail-label {
+        min-width: 140px;
+        font-size: 13px;
+    }
+
+    .detail-value {
+        font-size: 13px;
+    }
+
+    .book-action-buttons {
+        margin-top: 16px;
+    }
+
+    .add-to-cart-btn .ant-btn,
+    .buy-now-btn .ant-btn {
+        height: 44px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .book-detail-container {
+        padding: 12px;
+    }
+
+    .book-detail-card .ant-card-body {
+        padding: 16px;
+    }
+
+    .book-detail-title {
+        font-size: 20px;
+    }
+
+    .price-value {
+        font-size: 22px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        min-width: auto;
+    }
+
+    .thumbnail-item {
+        width: 60px;
+        height: 80px;
     }
 }
 

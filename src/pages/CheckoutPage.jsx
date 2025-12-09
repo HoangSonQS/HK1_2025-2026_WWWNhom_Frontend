@@ -16,7 +16,7 @@ import {
   Modal,
   Checkbox,
 } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import { getCart } from "../features/cart/api/cartService";
 import { createOrder } from "../features/order/api/orderService";
@@ -35,6 +35,7 @@ const { Title, Text } = Typography;
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [addressForm] = Form.useForm();
   const [cart, setCart] = useState(null);
@@ -67,7 +68,28 @@ const CheckoutPage = () => {
     setLoading(true);
     try {
       const response = await getCart();
-      const cartData = response.data;
+      let cartData = response.data;
+
+      const selectedIds = location.state?.selectedItemIds;
+      if (Array.isArray(selectedIds) && selectedIds.length > 0) {
+        const filteredItems =
+          cartData.items?.filter((it) =>
+            selectedIds.includes(it.cartItemId)
+          ) || [];
+        if (filteredItems.length === 0) {
+          message.warning("Không có sản phẩm được chọn để thanh toán");
+          navigate(ROUTES.CART, { replace: true });
+          return;
+        }
+        cartData = {
+          ...cartData,
+          items: filteredItems,
+          totalPrice: filteredItems.reduce(
+            (sum, item) => sum + item.bookPrice * item.quantity,
+            0
+          ),
+        };
+      }
 
       if (!cartData.items || cartData.items.length === 0) {
         message.warning("Giỏ hàng trống");
@@ -168,7 +190,11 @@ const CheckoutPage = () => {
   const calculateTotal = () => {
     if (!cart) return;
 
-    const subtotal = cart.totalPrice || 0;
+    const subtotal =
+      cart.items?.reduce(
+        (sum, item) => sum + item.bookPrice * item.quantity,
+        0
+      ) || 0;
     let discount = 0;
 
     if (appliedPromotion) {

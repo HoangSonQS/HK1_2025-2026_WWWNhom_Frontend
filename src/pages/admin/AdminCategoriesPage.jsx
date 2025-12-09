@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Popconfirm, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getAllCategories, deleteCategory } from '../../features/category/api/categoryService';
+import { useLocation } from 'react-router-dom';
+import { getAllCategories as getAllCategoriesAdmin, deleteCategory as deleteCategoryAdmin } from '../../features/category/api/adminCategoryService';
+import { getAllCategories as getAllCategoriesStaff, deleteCategory as deleteCategoryStaff } from '../../features/category/api/staffCategoryService';
 import CategoryModal from './components/CategoryModal';
 
 const AdminCategoriesPage = () => {
     const [categories, setCategories] = useState([]);
+    const location = useLocation();
+    const isStaffRoute = location.pathname.startsWith('/staff');
     const [loading, setLoading] = useState(false);
     const [categoryModalOpen, setCategoryModalOpen] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState(null);
@@ -17,7 +21,8 @@ const AdminCategoriesPage = () => {
     const loadCategories = async () => {
         setLoading(true);
         try {
-            const response = await getAllCategories();
+            const getService = isStaffRoute ? getAllCategoriesStaff : getAllCategoriesAdmin;
+            const response = await getService();
             const categoriesData = response.data || [];
             
             // Sắp xếp theo ID tăng dần
@@ -38,7 +43,8 @@ const AdminCategoriesPage = () => {
 
     const handleDelete = async (id) => {
         try {
-            await deleteCategory(id);
+            const deleteService = isStaffRoute ? deleteCategoryStaff : deleteCategoryAdmin;
+            await deleteService(id);
             message.success('Xóa thể loại thành công');
             
             // Xóa thể loại khỏi state và giữ nguyên thứ tự

@@ -105,6 +105,22 @@ const StaffOrderDetailPage = () => {
     }
   };
 
+  // Luồng chuyển trạng thái hợp lệ
+  const getNextStatuses = (status) => {
+    switch (status) {
+      case "PENDING":
+        return ["PROCESSING", "CANCELLED"];
+      case "PROCESSING":
+        return ["DELIVERING", "CANCELLED"];
+      case "DELIVERING":
+        return ["COMPLETED", "PROCESSING", "CANCELLED"]; // giao thất bại có thể trả về xử lý hoặc hủy
+      case "COMPLETED":
+        return ["RETURNED"]; // hoàn/đổi sau khi hoàn thành
+      default:
+        return [];
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -207,7 +223,8 @@ const StaffOrderDetailPage = () => {
           type="primary"
           icon={<EditOutlined />}
           onClick={() => {
-            setSelectedStatus(order.status);
+            const nextStatuses = getNextStatuses(order.status);
+            setSelectedStatus(nextStatuses[0] || order.status);
             setStatusModalVisible(true);
           }}
           disabled={
@@ -451,12 +468,11 @@ const StaffOrderDetailPage = () => {
                   onChange={setSelectedStatus}
                   style={{ width: "100%", marginTop: 8 }}
                 >
-                  <Option value="PENDING">Chờ xác nhận</Option>
-                  <Option value="PROCESSING">Đang xử lý</Option>
-                  <Option value="DELIVERING">Đang giao</Option>
-                  <Option value="COMPLETED">Đã hoàn thành</Option>
-                  <Option value="CANCELLED">Đã hủy</Option>
-                  <Option value="RETURNED">Đã trả lại</Option>
+                  {getNextStatuses(order.status).map((st) => (
+                    <Option key={st} value={st}>
+                      {getStatusText(st)}
+                    </Option>
+                  ))}
                 </Select>
               </div>
               <Text type="secondary" style={{ fontSize: 12 }}>

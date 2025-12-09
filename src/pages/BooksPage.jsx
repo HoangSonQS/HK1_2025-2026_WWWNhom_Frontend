@@ -5,6 +5,7 @@ import { getAllCategories } from '../features/category/api/categoryService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
+import BackToTop from '../components/BackToTop';
 import '../styles/books.css';
 
 const { Content } = Layout;
@@ -23,6 +24,10 @@ const BooksPage = () => {
     const [isPriceCheckboxActive, setIsPriceCheckboxActive] = useState(false); // Track xem có đang lọc theo checkbox giá không
     const [sortBy, setSortBy] = useState(null);
     const [sortOrder, setSortOrder] = useState('asc');
+    const ROW_SIZE = 4;
+    const INITIAL_ROWS = 5; // 5 hàng đầu: 5 x 4 = 20 card
+    const LOAD_MORE_ROWS = 5; // mỗi lần tải thêm 5 hàng
+    const [visibleRows, setVisibleRows] = useState(INITIAL_ROWS);
 
     // Load dữ liệu ban đầu
     useEffect(() => {
@@ -61,6 +66,7 @@ const BooksPage = () => {
             const booksData = response.data || [];
             setAllBooks(booksData);
             setBooks(booksData);
+            setVisibleRows(INITIAL_ROWS);
             
             // Tính giá cao nhất trong dữ liệu (nhưng vẫn giữ max là 10 triệu)
             if (booksData.length > 0) {
@@ -110,6 +116,7 @@ const BooksPage = () => {
                 });
             }
             setBooks(filteredBooks);
+            setVisibleRows(INITIAL_ROWS);
         } catch (error) {
             console.error('Error searching books:', error);
             message.error('Không thể tìm kiếm sách');
@@ -184,6 +191,7 @@ const BooksPage = () => {
         }
         
         setBooks(filteredBooks);
+        setVisibleRows(INITIAL_ROWS);
     };
 
     const handlePriceRangeChange = (value) => {
@@ -242,6 +250,13 @@ const BooksPage = () => {
 
     const formatPrice = (price) => {
         return price.toLocaleString('vi-VN');
+    };
+
+    const visibleCount = visibleRows * ROW_SIZE;
+    const displayedBooks = books.slice(0, visibleCount);
+
+    const handleLoadMore = () => {
+        setVisibleRows((prev) => prev + LOAD_MORE_ROWS);
     };
 
     return (
@@ -449,7 +464,7 @@ const BooksPage = () => {
                                         <Empty description="Không có sách nào" />
                                     ) : (
                                         <Row gutter={[16, 16]}>
-                                            {books.map(book => (
+                                            {displayedBooks.map(book => (
                                                 <Col xs={24} sm={12} md={8} lg={6} key={book.id}>
                                                     <BookCard
                                                         book={book}
@@ -458,12 +473,20 @@ const BooksPage = () => {
                                             ))}
                                         </Row>
                                     )}
+                                    {books.length > visibleCount && (
+                                        <div style={{ marginTop: 16, textAlign: 'center' }}>
+                                            <Button onClick={handleLoadMore}>
+                                                Tải thêm (đang hiển thị {displayedBooks.length}/{books.length})
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </Spin>
                         </Col>
                     </Row>
                 </div>
             </Content>
+            <BackToTop />
         </Layout>
     );
 };

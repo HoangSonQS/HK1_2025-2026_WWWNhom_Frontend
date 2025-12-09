@@ -53,6 +53,12 @@ const StaffBookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
             form.setFieldsValue({
                 title: book.title,
                 author: book.author,
+                description: book.description || '',
+                publicationYear: book.publicationYear || null,
+                weightGrams: book.weightGrams || null,
+                packageDimensions: book.packageDimensions || '',
+                pageCount: book.pageCount || null,
+                format: book.format || '',
                 price: book.price,
                 quantity: book.quantity,
                 categoryIds: book.categoryIds || []
@@ -103,6 +109,12 @@ const StaffBookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
             const bookData = {
                 title: values.title,
                 author: values.author,
+                description: values.description || null,
+                publicationYear: values.publicationYear || null,
+                weightGrams: values.weightGrams || null,
+                packageDimensions: values.packageDimensions || null,
+                pageCount: values.pageCount || null,
+                format: values.format || null,
                 price: values.price,
                 quantity: values.quantity,
                 categoryIds: values.categoryIds || []
@@ -192,6 +204,69 @@ const StaffBookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
                             rules={[{ required: true, message: 'Vui lòng nhập tác giả!' }]}
                         >
                             <Input placeholder="Tác giả" />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="description"
+                            label="Mô tả"
+                        >
+                            <Input.TextArea 
+                                placeholder="Mô tả về sách"
+                                rows={4}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="publicationYear"
+                            label="Năm xuất bản"
+                            rules={[
+                                { type: 'number', min: 1000, max: 9999, message: 'Năm xuất bản không hợp lệ!' }
+                            ]}
+                        >
+                            <InputNumber
+                                style={{ width: '100%' }}
+                                placeholder="Năm xuất bản"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="weightGrams"
+                            label="Trọng lượng (gr)"
+                            rules={[
+                                { type: 'number', min: 0, message: 'Trọng lượng phải lớn hơn hoặc bằng 0!' }
+                            ]}
+                        >
+                            <InputNumber
+                                style={{ width: '100%' }}
+                                placeholder="Trọng lượng (gr)"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="packageDimensions"
+                            label="Kích thước bao bì"
+                        >
+                            <Input placeholder="Ví dụ: 15x23cm" />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="pageCount"
+                            label="Số trang"
+                            rules={[
+                                { type: 'number', min: 1, message: 'Số trang phải lớn hơn 0!' }
+                            ]}
+                        >
+                            <InputNumber
+                                style={{ width: '100%' }}
+                                placeholder="Số trang"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="format"
+                            label="Hình thức"
+                        >
+                            <Input placeholder="Ví dụ: Bìa mềm, Bìa cứng" />
                         </Form.Item>
 
                         <Form.Item

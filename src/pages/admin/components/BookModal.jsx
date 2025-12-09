@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Upload, Select, Button, message, Spin } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { createBook, getBookById, updateBook } from '../../../features/book/api/bookService';
+import {
+    createBook as createBookAdmin,
+    getBookById as getBookByIdAdmin,
+    updateBook as updateBookAdmin,
+} from '../../../features/book/api/adminBookService';
 import { getAllCategories } from '../../../features/category/api/categoryService';
 import { getImageUrl } from '../../../utils/imageUtils';
 
@@ -43,13 +47,19 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
     const loadBook = async () => {
         setLoadingBook(true);
         try {
-            const response = await getBookById(bookId);
+            const response = await getBookByIdAdmin(bookId);
             const book = response.data;
             setCurrentImageUrl(book.imageUrl || '');
             
             form.setFieldsValue({
                 title: book.title,
                 author: book.author,
+                description: book.description || '',
+                publicationYear: book.publicationYear || null,
+                weightGrams: book.weightGrams || null,
+                packageDimensions: book.packageDimensions || '',
+                pageCount: book.pageCount || null,
+                format: book.format || '',
                 price: book.price,
                 quantity: book.quantity,
                 categoryIds: book.categoryIds || []
@@ -68,6 +78,12 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
             const bookData = {
                 title: values.title,
                 author: values.author,
+                description: values.description || null,
+                publicationYear: values.publicationYear || null,
+                weightGrams: values.weightGrams || null,
+                packageDimensions: values.packageDimensions || null,
+                pageCount: values.pageCount || null,
+                format: values.format || null,
                 price: values.price,
                 quantity: values.quantity,
                 categoryIds: values.categoryIds || []
@@ -75,7 +91,7 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
 
             let updatedBook = null;
             if (isEditMode) {
-                const response = await updateBook(bookId, bookData, imageFile);
+                const response = await updateBookAdmin(bookId, bookData, imageFile);
                 updatedBook = response.data;
                 message.success('Cập nhật sách thành công!');
             } else {
@@ -84,7 +100,7 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
                     setLoading(false);
                     return;
                 }
-                const response = await createBook(bookData, imageFile);
+                const response = await createBookAdmin(bookData, imageFile);
                 updatedBook = response.data;
                 message.success('Thêm sách thành công!');
             }
@@ -187,6 +203,73 @@ const BookModal = ({ open, onCancel, onSuccess, bookId = null }) => {
                         rules={[{ required: true, message: 'Vui lòng nhập tác giả!' }]}
                     >
                         <Input size="large" placeholder="Tác giả" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="description"
+                        label="Mô tả"
+                    >
+                        <Input.TextArea 
+                            size="large" 
+                            placeholder="Mô tả về sách"
+                            rows={4}
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="publicationYear"
+                        label="Năm xuất bản"
+                        rules={[
+                            { type: 'number', min: 1000, max: 9999, message: 'Năm xuất bản không hợp lệ!' }
+                        ]}
+                    >
+                        <InputNumber
+                            size="large"
+                            style={{ width: '100%' }}
+                            placeholder="Năm xuất bản"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="weightGrams"
+                        label="Trọng lượng (gr)"
+                        rules={[
+                            { type: 'number', min: 0, message: 'Trọng lượng phải lớn hơn hoặc bằng 0!' }
+                        ]}
+                    >
+                        <InputNumber
+                            size="large"
+                            style={{ width: '100%' }}
+                            placeholder="Trọng lượng (gr)"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="packageDimensions"
+                        label="Kích thước bao bì"
+                    >
+                        <Input size="large" placeholder="Ví dụ: 15x23cm" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="pageCount"
+                        label="Số trang"
+                        rules={[
+                            { type: 'number', min: 1, message: 'Số trang phải lớn hơn 0!' }
+                        ]}
+                    >
+                        <InputNumber
+                            size="large"
+                            style={{ width: '100%' }}
+                            placeholder="Số trang"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="format"
+                        label="Hình thức"
+                    >
+                        <Input size="large" placeholder="Ví dụ: Bìa mềm, Bìa cứng" />
                     </Form.Item>
 
                     <Form.Item

@@ -66,7 +66,15 @@ export const checkAdminRole = (useAdminToken = false) => {
 };
 
 export const checkSellerStaffRole = (useStaffToken = false) => {
-  const decoded = decodeJWT(null, false, useStaffToken);
+  // Nếu useStaffToken = true, chỉ kiểm tra staffToken
+  // Nếu useStaffToken = false, kiểm tra cả jwtToken và adminToken (admin có quyền cao nhất)
+  let decoded = decodeJWT(null, false, useStaffToken);
+  
+  // Nếu không tìm thấy staffToken và useStaffToken = true, kiểm tra adminToken
+  if (!decoded && useStaffToken) {
+    decoded = decodeJWT(null, true, false); // Kiểm tra adminToken
+  }
+  
   if (!decoded || !decoded.scope) return false;
   
   // Xử lý scope có thể là string hoặc array
@@ -76,12 +84,23 @@ export const checkSellerStaffRole = (useStaffToken = false) => {
       ? decoded.scope.join(' ') 
       : '';
   
+  const upperScope = scopeString.toUpperCase();
+  
+  // Admin có quyền cao nhất, có thể làm mọi thứ mà staff có thể làm
   // Kiểm tra case-insensitive
-  return scopeString.toUpperCase().includes("SELLER_STAFF");
+  return upperScope.includes("SELLER_STAFF") || upperScope.includes("ADMIN");
 };
 
 export const checkWarehouseStaffRole = (useStaffToken = false) => {
-  const decoded = decodeJWT(null, false, useStaffToken);
+  // Nếu useStaffToken = true, chỉ kiểm tra staffToken
+  // Nếu useStaffToken = false, kiểm tra cả jwtToken và adminToken (admin có quyền cao nhất)
+  let decoded = decodeJWT(null, false, useStaffToken);
+  
+  // Nếu không tìm thấy staffToken và useStaffToken = true, kiểm tra adminToken
+  if (!decoded && useStaffToken) {
+    decoded = decodeJWT(null, true, false); // Kiểm tra adminToken
+  }
+  
   if (!decoded || !decoded.scope) return false;
   
   // Xử lý scope có thể là string hoặc array
@@ -91,8 +110,11 @@ export const checkWarehouseStaffRole = (useStaffToken = false) => {
       ? decoded.scope.join(' ') 
       : '';
   
+  const upperScope = scopeString.toUpperCase();
+  
+  // Admin có quyền cao nhất, có thể làm mọi thứ mà staff có thể làm
   // Kiểm tra case-insensitive
-  return scopeString.toUpperCase().includes("WAREHOUSE_STAFF");
+  return upperScope.includes("WAREHOUSE_STAFF") || upperScope.includes("ADMIN");
 };
 
 export const checkCustomerRole = () => {

@@ -107,7 +107,7 @@ const AdminLogin = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">ADMIN LOGIN</h1>
+                    <h1 className="login-title">ĐĂNG NHẬP ADMIN</h1>
                     <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
                         Đăng nhập dành cho quản trị viên
                     </p>
@@ -173,7 +173,7 @@ const AdminLogin = () => {
 
                     <div className="login-form-options">
                         <Link to={ROUTES.FORGOT_PASSWORD} className="forgot-password-link">
-                            Forgot your password?
+                            Quên mật khẩu?
                         </Link>
                     </div>
 
@@ -186,7 +186,7 @@ const AdminLogin = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đăng nhập...' : 'ADMIN LOGIN'}
+                            {loading ? 'Đang đăng nhập...' : 'ĐĂNG NHẬP ADMIN'}
                         </Button>
                     </Form.Item>
 

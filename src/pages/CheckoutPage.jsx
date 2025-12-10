@@ -15,6 +15,8 @@ import {
   Form,
   Modal,
   Checkbox,
+  Select,
+  Switch,
 } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -28,10 +30,12 @@ import { validatePromotionCode } from "../features/promotion/api/promotionServic
 import { createPayment } from "../features/payment/api/paymentService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
+import { getProvinces, getDistricts, getWards } from "../utils/vietnamAddress";
 import "../styles/cart.css";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -52,6 +56,10 @@ const CheckoutPage = () => {
   const [finalTotal, setFinalTotal] = useState(0);
   const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
   const [creatingAddress, setCreatingAddress] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [availableDistricts, setAvailableDistricts] = useState([]);
+  const [availableWards, setAvailableWards] = useState([]);
 
   useEffect(() => {
     loadCart();
@@ -136,11 +144,20 @@ const CheckoutPage = () => {
       addressType: "HOME",
       isDefault: true, // luôn đặt mặc định cho địa chỉ mới
     });
+    setSelectedProvince(null);
+    setSelectedDistrict(null);
+    setAvailableDistricts([]);
+    setAvailableWards([]);
     setIsAddressModalVisible(true);
   };
 
   const handleCancelAddAddress = () => {
     setIsAddressModalVisible(false);
+    addressForm.resetFields();
+    setSelectedProvince(null);
+    setSelectedDistrict(null);
+    setAvailableDistricts([]);
+    setAvailableWards([]);
   };
 
   const handleSubmitNewAddress = async () => {
@@ -148,7 +165,7 @@ const CheckoutPage = () => {
       const values = await addressForm.validateFields();
       const payload = {
         addressType: values.addressType,
-        isDefault: true, // luôn đặt mặc định
+        isDefault: values.isDefault ?? true,
         street: values.street || "",
         ward: values.ward || "",
         district: values.district || "",
@@ -255,6 +272,7 @@ const CheckoutPage = () => {
         addressId: selectedAddressId,
         paymentMethod: paymentMethod,
         promotionCode: appliedPromotion ? appliedPromotion.code : null,
+        cartItemIds: cart?.items?.map((it) => it.cartItemId) || [],
       };
 
       console.log("Creating order with data:", orderData);
@@ -633,6 +651,10 @@ const CheckoutPage = () => {
                 name="phoneNumber"
                 rules={[
                   { required: true, message: "Vui lòng nhập số điện thoại" },
+                  {
+                    pattern: /^[0-9]{10,11}$/,
+                    message: "Số điện thoại không hợp lệ",
+                  },
                 ]}
               >
                 <Input placeholder="Ví dụ: 0901234567" />
@@ -645,11 +667,93 @@ const CheckoutPage = () => {
                   { required: true, message: "Vui lòng chọn loại địa chỉ" },
                 ]}
               >
-                <Radio.Group>
-                  <Radio value="HOME">Nhà riêng</Radio>
-                  <Radio value="OFFICE">Cơ quan</Radio>
-                  <Radio value="OTHER">Khác</Radio>
-                </Radio.Group>
+                <Select placeholder="Chọn loại địa chỉ">
+                  <Option value="HOME">Nhà riêng</Option>
+                  <Option value="OFFICE">Cơ quan</Option>
+                  <Option value="OTHER">Khác</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="Tỉnh/Thành phố"
+                name="city"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn Tỉnh/Thành phố",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Chọn Tỉnh/Thành phố"
+                  showSearch
+                  optionFilterProp="children"
+                  value={selectedProvince}
+                  onChange={(value) => {
+                    setSelectedProvince(value);
+                    setSelectedDistrict(null);
+                    setAvailableWards([]);
+                    addressForm.setFieldsValue({
+                      district: undefined,
+                      ward: undefined,
+                    });
+                    setAvailableDistricts(getDistricts(value));
+                  }}
+                >
+                  {getProvinces().map((province) => (
+                    <Option key={province} value={province}>
+                      {province}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="Quận/Huyện"
+                name="district"
+                rules={[
+                  { required: true, message: "Vui lòng chọn Quận/Huyện" },
+                ]}
+              >
+                <Select
+                  placeholder="Chọn Quận/Huyện"
+                  disabled={!selectedProvince}
+                  showSearch
+                  optionFilterProp="children"
+                  value={selectedDistrict}
+                  onChange={(value) => {
+                    setSelectedDistrict(value);
+                    addressForm.setFieldsValue({ ward: undefined });
+                    if (selectedProvince) {
+                      setAvailableWards(getWards(selectedProvince, value));
+                    }
+                  }}
+                >
+                  {availableDistricts.map((district) => (
+                    <Option key={district} value={district}>
+                      {district}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="Phường/Xã"
+                name="ward"
+                rules={[{ required: true, message: "Vui lòng chọn Phường/Xã" }]}
+              >
+                <Select
+                  placeholder="Chọn Phường/Xã"
+                  disabled={!selectedDistrict}
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {availableWards.map((ward) => (
+                    <Option key={ward} value={ward}>
+                      {ward}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item
@@ -665,19 +769,13 @@ const CheckoutPage = () => {
                 <Input placeholder="Ví dụ: 123 Lê Lợi" />
               </Form.Item>
 
-              <Form.Item label="Phường/Xã" name="ward">
-                <Input placeholder="Ví dụ: Phường 1" />
+              <Form.Item
+                name="isDefault"
+                valuePropName="checked"
+                initialValue
+              >
+                <Switch /> Đặt làm địa chỉ mặc định
               </Form.Item>
-
-              <Form.Item label="Quận/Huyện" name="district">
-                <Input placeholder="Ví dụ: Quận 1" />
-              </Form.Item>
-
-              <Form.Item label="Tỉnh/Thành phố" name="city">
-                <Input placeholder="Ví dụ: TP. Hồ Chí Minh" />
-              </Form.Item>
-
-              {/* Luôn đặt mặc định, không cần checkbox */}
             </Form>
           </Modal>
         </div>

@@ -46,7 +46,7 @@ const ForgotPassword = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">FORGOT PASSWORD</h1>
+                    <h1 className="login-title">QUÊN MẬT KHẨU</h1>
                 </div>
                 
                 <Form
@@ -116,13 +116,13 @@ const ForgotPassword = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang gửi email...' : 'SEND EMAIL'}
+                            {loading ? 'Đang gửi email...' : 'GỬI EMAIL'}
                         </Button>
                     </Form.Item>
 
                     <div className="register-link-container">
                         <Link to={ROUTES.LOGIN} className="register-link">
-                            ← Back to Login
+                            ← Quay lại đăng nhập
                         </Link>
                     </div>
                 </Form>

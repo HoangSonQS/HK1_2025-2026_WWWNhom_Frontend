@@ -12,6 +12,7 @@ import {
   Space,
   Modal,
   Input,
+  Radio,
 } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -30,10 +31,12 @@ import Header from "../components/Header";
 import {
   getOrderById,
   cancelOrder,
+  updatePaymentMethod,
 } from "../features/order/api/orderService";
 import { returnRequestService } from "../features/returnRequest/api/returnRequestService";
 import { getImageUrl } from "../utils/imageUtils";
 import { ROUTES } from "../utils/constants";
+import { createPayment } from "../features/payment/api/paymentService";
 import "../styles/cart.css";
 
 const { Content } = Layout;
@@ -48,6 +51,10 @@ const OrderDetailPage = () => {
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnSubmitting, setReturnSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [switchingPayment, setSwitchingPayment] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("CASH");
 
   useEffect(() => {
     loadOrder();
@@ -133,6 +140,8 @@ const OrderDetailPage = () => {
         return "Đã hủy";
       case "RETURNED":
         return "Đã trả lại";
+      case "UNPAID":
+        return "Chưa thanh toán";
       default:
         return status;
     }
@@ -176,6 +185,53 @@ const OrderDetailPage = () => {
         }
       },
     });
+  };
+
+  const handlePayNow = async () => {
+    if (!order) return;
+    setPaying(true);
+    try {
+      const response = await createPayment(order.id);
+      const paymentUrl = response.data?.paymentUrl;
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        message.error("Không lấy được liên kết thanh toán");
+      }
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể tạo liên kết thanh toán";
+      message.error(msg);
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const handleSwitchToCOD = async () => {
+    if (!order) return;
+    setSelectedPaymentMethod(order.paymentMethod || "CASH");
+    setPaymentModalOpen(true);
+  };
+
+  const handleUpdatePaymentMethod = async () => {
+    if (!order) return;
+    setSwitchingPayment(true);
+    try {
+      const response = await updatePaymentMethod(order.id, selectedPaymentMethod);
+      setOrder(response.data);
+      message.success("Đã cập nhật phương thức thanh toán");
+      setPaymentModalOpen(false);
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể cập nhật phương thức thanh toán";
+      message.error(msg);
+    } finally {
+      setSwitchingPayment(false);
+    }
   };
 
   // Hàm handleConfirmReceived đã bị xóa - Trạng thái đơn hàng chỉ được duyệt ở trang admin
@@ -235,7 +291,7 @@ const OrderDetailPage = () => {
               CHI TIẾT ĐƠN HÀNG #{order.id}
             </Title>
             <Space>
-              {order.status === "PENDING" && (
+              {(order.status === "PENDING" || order.status === "UNPAID") && (
                 <Button
                   danger
                   size="large"
@@ -244,6 +300,26 @@ const OrderDetailPage = () => {
                 >
                   Hủy đơn
                 </Button>
+              )}
+              {order.status === "UNPAID" && (
+                <>
+                  {order.paymentMethod === "VNPAY" && (
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={handlePayNow}
+                      loading={paying}
+                    >
+                      Thanh toán
+                    </Button>
+                  )}
+                  <Button
+                    size="large"
+                    onClick={handleSwitchToCOD}
+                  >
+                    Đổi phương thức thanh toán
+                  </Button>
+                </>
               )}
               {order.status === "COMPLETED" && (
                 <Button
@@ -643,6 +719,14 @@ const OrderDetailPage = () => {
           reason={returnReason}
           setReason={setReturnReason}
         />
+        <PaymentMethodModal
+          open={paymentModalOpen}
+          onCancel={() => setPaymentModalOpen(false)}
+          onSubmit={handleUpdatePaymentMethod}
+          loading={switchingPayment}
+          selected={selectedPaymentMethod}
+          onChange={setSelectedPaymentMethod}
+        />
       </Content>
     </Layout>
   );
@@ -673,6 +757,38 @@ const ReturnRequestModal = ({
       onChange={(e) => setReason(e.target.value)}
       placeholder="Mô tả lý do (hàng lỗi, thiếu, nhầm...)"
     />
+  </Modal>
+);
+
+// Modal chọn phương thức thanh toán
+const PaymentMethodModal = ({
+  open,
+  onCancel,
+  onSubmit,
+  loading,
+  selected,
+  onChange,
+}) => (
+  <Modal
+    title="Chọn phương thức thanh toán"
+    open={open}
+    onCancel={onCancel}
+    onOk={onSubmit}
+    confirmLoading={loading}
+    okText="Lưu"
+    cancelText="Hủy"
+    destroyOnClose
+  >
+    <Radio.Group
+      onChange={(e) => onChange(e.target.value)}
+      value={selected}
+      style={{ width: "100%" }}
+    >
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <Radio value="CASH">Thanh toán khi nhận hàng (COD)</Radio>
+        <Radio value="VNPAY">Thanh toán qua VNPay</Radio>
+      </Space>
+    </Radio.Group>
   </Modal>
 );
 

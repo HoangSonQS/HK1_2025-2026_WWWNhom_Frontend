@@ -141,7 +141,7 @@ const StaffReturnRequestsPage = () => {
         columns={columns}
         rowKey="id"
         loading={loading}
-        pagination={{ pageSize: 10, showSizeChanger: true }}
+        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
       />
       <Modal
         title={modalType === 'approve' ? 'Phê duyệt yêu cầu' : 'Từ chối yêu cầu'}

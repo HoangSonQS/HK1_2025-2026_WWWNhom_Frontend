@@ -373,7 +373,7 @@ const AdminAccountsPage = () => {
                 rowKey="id"
                 loading={loading}
                 pagination={{
-                    pageSize: 10,
+                    defaultPageSize: 10,
                     showSizeChanger: true,
                     showTotal: (total) => `Tổng ${total} tài khoản`,
                 }}

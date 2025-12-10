@@ -213,7 +213,7 @@ const StaffDashboard = () => {
     {
       key: '/staff/purchase-orders',
       icon: <OrderedListOutlined />,
-      label: 'Đơn đặt hàng (PO)',
+      label: 'Đơn đặt nhập kho',
       onClick: () => navigate('/staff/purchase-orders')
     },
   ];

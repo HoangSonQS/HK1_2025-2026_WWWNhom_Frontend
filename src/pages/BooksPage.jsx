@@ -109,10 +109,11 @@ const BooksPage = () => {
             if (selectedCategories.length > 0) {
                 filteredBooks = filteredBooks.filter(book => {
                     if (!book.categoryIds) return false;
-                    const bookCategoryIds = Array.isArray(book.categoryIds) 
-                        ? book.categoryIds 
+                    const bookCategoryIds = Array.isArray(book.categoryIds)
+                        ? book.categoryIds
                         : Array.from(book.categoryIds || []);
-                    return selectedCategories.some(catId => bookCategoryIds.includes(catId));
+                    // AND logic: book must contain all selected categories
+                    return selectedCategories.every(catId => bookCategoryIds.includes(catId));
                 });
             }
             setBooks(filteredBooks);
@@ -164,7 +165,8 @@ const BooksPage = () => {
                 const bookCategoryIds = Array.isArray(book.categoryIds) 
                     ? book.categoryIds 
                     : Array.from(book.categoryIds || []);
-                return categoriesToFilter.some(catId => bookCategoryIds.includes(catId));
+                // AND logic: book must contain all selected categories
+                return categoriesToFilter.every(catId => bookCategoryIds.includes(catId));
             });
         }
         

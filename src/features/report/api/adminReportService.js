@@ -27,6 +27,10 @@ export const adminReportService = {
     const res = await adminApiClient.get(`${BASE}/inventory/categories`);
     return res.data;
   },
+  getReturns: async (start, end) => {
+    const res = await adminApiClient.get(`${BASE}/returns`, { params: { start, end } });
+    return res.data;
+  },
   getPromotionUsage: async () => {
     const res = await adminApiClient.get(`${BASE}/promotion-usage`);
     return res.data;
@@ -38,4 +42,6 @@ export const adminReportService = {
 };
 
 export default adminReportService;
+
+
 

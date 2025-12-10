@@ -5,7 +5,7 @@ import { adminImportStockService } from '../../../features/importStock/api/admin
 import { staffImportStockService } from '../../../features/importStock/api/staffImportStockService';
 import { adminSupplierService } from '../../../features/supplier/api/adminSupplierService';
 import { staffSupplierService } from '../../../features/supplier/api/staffSupplierService';
-import { getAllBooks } from '../../../features/book/api/bookService';
+import { getAllBooks as getAllBooksAdmin } from '../../../features/book/api/adminBookService';
 import { getAllBooks as getAllBooksStaff } from '../../../features/book/api/staffBookService';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../utils/constants';
@@ -30,7 +30,7 @@ const ImportStockModal = ({ isOpen, onClose, onSuccess, isStaffRoute = false }) 
     try {
       const [suppliersData, booksData] = await Promise.all([
         isStaffRoute ? staffSupplierService.getAllSuppliers() : adminSupplierService.getAllSuppliers(),
-        isStaffRoute ? getAllBooksStaff() : getAllBooks()
+        isStaffRoute ? getAllBooksStaff() : getAllBooksAdmin()
       ]);
       
       // Lọc suppliers đang hoạt động

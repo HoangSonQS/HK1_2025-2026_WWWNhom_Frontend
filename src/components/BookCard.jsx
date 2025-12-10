@@ -1,12 +1,13 @@
 import React from "react";
 import { Card, Tag, Space } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getImageUrl } from "../utils/imageUtils";
 import AddToCartButton from "./AddToCartButton";
 import BuyNowButton from "./BuyNowButton";
 
 const BookCard = ({ book }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <Card
@@ -39,7 +40,12 @@ const BookCard = ({ book }) => {
           />
         </div>
       }
-      onClick={() => navigate(`/books/${book.id}`)}
+      onClick={(e) => {
+        // Nếu event đã bị preventDefault từ các nút bên trong thì không điều hướng
+        if (e.defaultPrevented) return;
+        const fromPath = location.pathname + location.search;
+        navigate(`/books/${book.id}`, { state: { from: fromPath } });
+      }}
     >
       <Card.Meta
         title={<div className="book-title">{book.title}</div>}
@@ -59,7 +65,14 @@ const BookCard = ({ book }) => {
               {book.price.toLocaleString("vi-VN")} đ
             </div>
             <div className="book-quantity">Còn lại: {book.quantity}</div>
-            <div style={{ marginTop: 12 }}>
+            <div
+              style={{ marginTop: 12 }}
+              onClick={(e) => {
+                // Chặn nổi bọt để không kích hoạt onClick của Card
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+            >
               <Space
                 direction="vertical"
                 style={{ width: "100%" }}

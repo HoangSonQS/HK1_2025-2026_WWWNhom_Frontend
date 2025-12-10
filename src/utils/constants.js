@@ -3,7 +3,9 @@
  * Lấy từ biến môi trường hoặc giá trị mặc định
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://hk1-2025-2026-wwwnhom-backend.onrender.com/api/';
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://hk1-2025-2026-wwwnhom-backend.onrender.com/api/';
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'SEBook';
 export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 

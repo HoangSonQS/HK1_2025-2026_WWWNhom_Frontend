@@ -15,7 +15,7 @@ const LoginRequiredModal = ({ visible, onCancel, title = 'Yêu cầu đăng nh�
     };
 
     const handleCancel = () => {
-        // Chỉ đóng modal, không navigate - ở lại trang hiện tại
+        // Chỉ đóng modal, giữ nguyên trang hiện tại
         onCancel();
     };
 
@@ -28,6 +28,8 @@ const LoginRequiredModal = ({ visible, onCancel, title = 'Yêu cầu đăng nh�
             okText="Đăng nhập"
             cancelText="Hủy"
             okButtonProps={{ type: 'primary' }}
+            maskClosable={false}
+            keyboard={false}
         >
             <p>{content}</p>
         </Modal>

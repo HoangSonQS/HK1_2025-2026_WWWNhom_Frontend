@@ -12,6 +12,8 @@ const StaffBooksPage = () => {
     const [loading, setLoading] = useState(false);
     const [bookModalOpen, setBookModalOpen] = useState(false);
     const [editingBookId, setEditingBookId] = useState(null);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         loadBooks();
@@ -262,9 +264,15 @@ const StaffBooksPage = () => {
                 rowKey="id"
                 loading={loading}
                 pagination={{
-                    pageSize: 10,
+                    current: currentPage,
+                    pageSize,
                     showSizeChanger: true,
+                    pageSizeOptions: [10, 20, 50, 100],
                     showTotal: (total) => `Tổng ${total} sách`,
+                    onChange: (page, size) => {
+                        setCurrentPage(page);
+                        setPageSize(size);
+                    },
                 }}
             />
             <StaffBookModal

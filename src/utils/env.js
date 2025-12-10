@@ -18,7 +18,10 @@ export const getEnv = (key, defaultValue = '') => {
  * Lấy API Base URL
  */
 export const getApiBaseUrl = () => {
-    return import.meta.env.VITE_API_BASE_URL || 'https://hk1-2025-2026-wwwnhom-backend.onrender.com/api/';
+    return (
+        import.meta.env.VITE_API_BASE_URL ||
+        'https://hk1-2025-2026-wwwnhom-backend.onrender.com/api/'
+    );
 };
 
 /**

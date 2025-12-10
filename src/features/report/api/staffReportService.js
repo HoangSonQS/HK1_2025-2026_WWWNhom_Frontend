@@ -27,6 +27,10 @@ export const staffReportService = {
     const res = await staffApiClient.get(`${BASE}/inventory/categories`);
     return res.data;
   },
+  getReturns: async (start, end) => {
+    const res = await staffApiClient.get(`${BASE}/returns`, { params: { start, end } });
+    return res.data;
+  },
   getPromotionUsage: async () => {
     const res = await staffApiClient.get(`${BASE}/promotion-usage`);
     return res.data;

@@ -19,6 +19,7 @@ const StaffReportsPage = () => {
   const [lowStock, setLowStock] = useState([]);
   const [invSummary, setInvSummary] = useState({ totalQuantity: 0, totalValue: 0 });
   const [invCategories, setInvCategories] = useState([]);
+  const [returnSummary, setReturnSummary] = useState({ count: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -33,9 +34,10 @@ const StaffReportsPage = () => {
     try {
       const startStr = start.format('YYYY-MM-DD');
       const endStr = end.add(1, 'day').format('YYYY-MM-DD'); // end exclusive
-      const [rev, status, top, low, invSum, invCat] = await Promise.all([
+        const [rev, status, returns, top, low, invSum, invCat] = await Promise.all([
         reportService.getRevenue(startStr, endStr),
         reportService.getStatusCounts(startStr, endStr),
+          reportService.getReturns(startStr, endStr),
         reportService.getTopProducts(),
         reportService.getLowStock(10),
         reportService.getInventorySummary(),
@@ -43,6 +45,7 @@ const StaffReportsPage = () => {
       ]);
       setRevenueData(rev || []);
       setStatusData(status || []);
+        setReturnSummary(returns || { count: 0, totalAmount: 0 });
       setTopProducts(top || []);
       setLowStock(low || []);
       setInvSummary(invSum || { totalQuantity: 0, totalValue: 0 });
@@ -71,7 +74,15 @@ const StaffReportsPage = () => {
   ];
 
   const statusColumns = [
-    { title: 'Trạng thái', dataIndex: 'status', key: 'status' },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: (s) => {
+        const color = s === 'RETURNED' ? 'red' : s === 'CANCELLED' ? 'orange' : 'blue';
+        return <Tag color={color}>{s}</Tag>;
+      },
+    },
     { title: 'Số đơn', dataIndex: 'count', key: 'count', align: 'right' },
   ];
 
@@ -133,6 +144,23 @@ const StaffReportsPage = () => {
           </Col>
           <Col span={6}>
             <Statistic title="Tổng đơn (range)" value={totalOrders} />
+          </Col>
+          <Col span={6}>
+            <Statistic
+              title="Số đơn trả hàng"
+              value={returnSummary?.count || 0}
+              valueStyle={{ color: '#d4380d' }}
+            />
+          </Col>
+          <Col span={6}>
+            <Statistic
+              title="Giá trị đơn trả"
+              value={returnSummary?.totalAmount || 0}
+              valueStyle={{ color: '#d4380d' }}
+              formatter={(v) =>
+                Number(v).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
+              }
+            />
           </Col>
         </Row>
       </Card>

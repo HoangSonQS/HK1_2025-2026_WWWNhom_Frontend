@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Form, Input, Button, message } from 'antd';
-import { createCategory } from '../features/category/api/categoryService';
+import { createCategory as createCategoryPublic } from '../features/category/api/categoryService';
+import { createCategory as createCategoryAdmin } from '../features/category/api/adminCategoryService';
+import { createCategory as createCategoryStaff } from '../features/category/api/staffCategoryService';
 import Header from '../components/Header';
 import '../styles/auth.css';
 
@@ -13,8 +15,10 @@ const AddCategoryPage = () => {
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     
-    // Kiểm tra xem có đến từ admin dashboard không
-    const fromAdmin = location.state?.fromAdmin || false;
+    // Kiểm tra route
+    const pathname = location.pathname || '';
+    const fromAdmin = location.state?.fromAdmin || pathname.startsWith('/admin');
+    const fromStaff = pathname.startsWith('/staff');
 
     const handleSubmit = async (values) => {
         setLoading(true);
@@ -23,10 +27,11 @@ const AddCategoryPage = () => {
                 name: values.name
             };
 
-            await createCategory(categoryData);
+            const service = fromAdmin ? createCategoryAdmin : fromStaff ? createCategoryStaff : createCategoryPublic;
+            await service(categoryData);
             message.success('Thêm thể loại thành công!');
             // Nếu đến từ admin, quay về trang admin/categories, ngược lại quay về trang công khai
-            navigate(fromAdmin ? '/admin/categories' : '/categories');
+            navigate(fromAdmin ? '/admin/categories' : fromStaff ? '/staff/categories' : '/categories');
         } catch (error) {
             console.error('Error creating category:', error);
             const errorMsg = error.response?.data?.message || 'Thêm thể loại thất bại';

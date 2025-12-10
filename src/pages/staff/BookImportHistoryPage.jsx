@@ -162,7 +162,7 @@ const BookImportHistoryPage = () => {
                 dataSource={history}
                 rowKey="importStockId"
                 pagination={{
-                  pageSize: 10,
+                  defaultPageSize: 10,
                   showSizeChanger: true,
                   showTotal: (total) => `Tổng ${total} phiếu nhập`,
                 }}

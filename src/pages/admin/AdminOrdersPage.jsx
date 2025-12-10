@@ -268,7 +268,7 @@ const AdminOrdersPage = () => {
             dataSource={filteredOrders}
             rowKey="id"
             pagination={{
-              pageSize: 10,
+              defaultPageSize: 10,
               showSizeChanger: true,
               showTotal: (total) => `Tổng ${total} đơn hàng`,
             }}

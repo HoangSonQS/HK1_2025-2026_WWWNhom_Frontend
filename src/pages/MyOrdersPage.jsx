@@ -307,7 +307,7 @@ const MyOrdersPage = () => {
                   emptyText: "Chưa có đơn hàng nào",
                 }}
                 pagination={{
-                  pageSize: 10,
+                  defaultPageSize: 10,
                   showSizeChanger: true,
                   showTotal: (total) => `Tổng cộng ${total} đơn hàng`,
                 }}

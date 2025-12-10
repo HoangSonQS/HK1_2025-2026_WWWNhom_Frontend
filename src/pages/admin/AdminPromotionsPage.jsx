@@ -653,7 +653,7 @@ const AdminPromotionsPage = () => {
                             loading={logsLoading}
                             bordered
                             pagination={{
-                                pageSize: 10,
+                                defaultPageSize: 10,
                                 showSizeChanger: true,
                                 showTotal: (total) => `Tổng ${total} nhật ký`,
                                 pageSizeOptions: ['10', '20', '50'],
@@ -671,7 +671,7 @@ const AdminPromotionsPage = () => {
                     size="small"
                     style={{ width: '100%' }}
                     pagination={{
-                        pageSize: 10,
+                        defaultPageSize: 10,
                         showSizeChanger: true,
                         showTotal: (total) => `Tổng ${total} khuyến mãi`,
                         showQuickJumper: true,

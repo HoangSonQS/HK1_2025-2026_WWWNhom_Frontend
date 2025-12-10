@@ -176,7 +176,7 @@ const AdminDashboard = () => {
     {
       key: "/admin/purchase-orders",
       icon: <AppstoreOutlined />,
-      label: "Đơn Đặt hàng",
+      label: "Đơn đặt nhập kho",
       onClick: () => navigate("/admin/purchase-orders"),
     },
   ];

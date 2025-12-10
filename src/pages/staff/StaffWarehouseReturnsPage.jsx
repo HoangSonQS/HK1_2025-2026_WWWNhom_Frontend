@@ -166,7 +166,7 @@ const StaffWarehouseReturnsPage = () => {
           columns={columns}
           rowKey={(r) => r.id}
           loading={loading}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
+          pagination={{ defaultPageSize: 10, showSizeChanger: true }}
         />
       </Card>
 

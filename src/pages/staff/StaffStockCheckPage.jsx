@@ -75,7 +75,7 @@ const StaffStockCheckPage = () => {
         columns={columns}
         rowKey={(r) => r.bookId}
         loading={loading}
-        pagination={{ pageSize: 20, showSizeChanger: true }}
+        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
       />
     </Card>
   );

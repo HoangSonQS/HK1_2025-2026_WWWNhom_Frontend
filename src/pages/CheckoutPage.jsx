@@ -255,6 +255,7 @@ const CheckoutPage = () => {
         addressId: selectedAddressId,
         paymentMethod: paymentMethod,
         promotionCode: appliedPromotion ? appliedPromotion.code : null,
+        cartItemIds: cart?.items?.map((it) => it.cartItemId) || [],
       };
 
       console.log("Creating order with data:", orderData);

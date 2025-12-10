@@ -66,38 +66,38 @@ const BookDetailPage = () => {
             <Header />
             <Content>
                 <div className="book-detail-container">
-                    <Button
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => {
-                            const from = location.state?.from;
-                            if (from) {
-                                navigate(from, { replace: true });
-                            } else if (window.history.length > 1) {
-                                navigate(-1);
-                            } else {
-                                navigate('/books');
-                            }
-                        }}
-                        className="back-button"
-                    >
-                        Quay lại
-                    </Button>
+            <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => {
+                    const from = location.state?.from;
+                    if (from) {
+                        navigate(from, { replace: true });
+                    } else if (window.history.length > 1) {
+                        navigate(-1);
+                    } else {
+                        navigate('/books');
+                    }
+                }}
+                className="back-button"
+            >
+                Quay lại
+            </Button>
 
-                    <Card className="book-detail-card">
+            <Card className="book-detail-card">
                         <Row gutter={[32, 32]}>
                             {/* Cột trái - Hình ảnh và Actions */}
                             <Col xs={24} md={10} lg={8}>
                                 <div className="book-image-section">
                                     {/* Hình ảnh chính */}
                                     <div className="book-main-image">
-                                        <img
+                        <img
                                             src={book.imageUrl ? getImageUrl(book.imageUrl) : '/placeholder-book.jpg'}
-                                            alt={book.title}
-                                            onError={(e) => {
-                                                e.target.src = '/placeholder-book.jpg';
-                                            }}
-                                        />
-                                    </div>
+                            alt={book.title}
+                            onError={(e) => {
+                                e.target.src = '/placeholder-book.jpg';
+                            }}
+                        />
+                    </div>
 
                                     {/* Action Buttons */}
                                     <div className="book-action-buttons">
@@ -137,17 +137,17 @@ const BookDetailPage = () => {
                             <Col xs={24} md={14} lg={16}>
                                 <div className="book-info-section">
                                     {/* Tiêu đề */}
-                                    <h1 className="book-detail-title">{book.title}</h1>
+                        <h1 className="book-detail-title">{book.title}</h1>
 
                                     {/* Thông tin cơ bản */}
                                     <div className="book-basic-info">
-                                        {book.categoryNames && book.categoryNames.length > 0 && (
+                            {book.categoryNames && book.categoryNames.length > 0 && (
                                             <div className="book-categories">
-                                                {Array.from(book.categoryNames).map((categoryName, index) => (
+                                        {Array.from(book.categoryNames).map((categoryName, index) => (
                                                     <Tag key={index} color="blue" className="category-tag">
-                                                        {categoryName}
-                                                    </Tag>
-                                                ))}
+                                                {categoryName}
+                                            </Tag>
+                                        ))}
                                             </div>
                                         )}
                                         <div className="book-price-section">
@@ -203,16 +203,16 @@ const BookDetailPage = () => {
                                                 <div className="detail-row">
                                                     <span className="detail-label">Số trang:</span>
                                                     <span className="detail-value">{book.pageCount}</span>
-                                                </div>
-                                            )}
+                                </div>
+                            )}
                                             {book.format && (
                                                 <div className="detail-row">
                                                     <span className="detail-label">Hình thức:</span>
                                                     <span className="detail-value">{book.format}</span>
-                                                </div>
+                            </div>
                                             )}
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
 
                                     {/* Mô tả sản phẩm */}
                                     {book.description && (
@@ -222,14 +222,14 @@ const BookDetailPage = () => {
                                                 <h2 className="section-title">Mô tả sản phẩm</h2>
                                                 <div className="book-description">
                                                     {book.description}
-                                                </div>
-                                            </div>
+                        </div>
+                    </div>
                                         </>
                                     )}
-                                </div>
+                </div>
                             </Col>
                         </Row>
-                    </Card>
+            </Card>
                 </div>
             </Content>
         </Layout>

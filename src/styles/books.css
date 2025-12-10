@@ -89,6 +89,55 @@
     flex-direction: column;
 }
 
+.book-card .ant-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.book-card .ant-card-meta {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.book-card .ant-card-meta-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.book-meta-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 6px;
+}
+
+.book-title {
+    min-height: 44px;
+}
+
+.book-author {
+    min-height: 20px;
+}
+
+.book-tags {
+    min-height: 44px; /* giữ đều chiều cao vùng tag giữa các thẻ */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 4px 0;
+}
+
+.book-tags .ant-tag {
+    margin: 0;
+}
+
+.book-card-actions {
+    margin-top: auto;
+}
+
 .book-card .ant-card-cover {
     background: #f8f9fa;
     padding: 0;

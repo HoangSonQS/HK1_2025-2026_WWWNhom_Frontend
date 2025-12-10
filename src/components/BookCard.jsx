@@ -50,12 +50,12 @@ const BookCard = ({ book }) => {
       <Card.Meta
         title={<div className="book-title">{book.title}</div>}
         description={
-          <div>
+          <div className="book-meta-content">
             <div className="book-author">Tác giả: {book.author}</div>
             {book.categoryNames && book.categoryNames.length > 0 && (
-              <div style={{ marginTop: 8, marginBottom: 8 }}>
+              <div className="book-tags">
                 {Array.from(book.categoryNames).map((categoryName, index) => (
-                  <Tag key={index} color="blue" style={{ marginBottom: 4 }}>
+                  <Tag key={index} color="blue">
                     {categoryName}
                   </Tag>
                 ))}
@@ -66,7 +66,7 @@ const BookCard = ({ book }) => {
             </div>
             <div className="book-quantity">Còn lại: {book.quantity}</div>
             <div
-              style={{ marginTop: 12 }}
+              className="book-card-actions"
               onClick={(e) => {
                 // Chặn nổi bọt để không kích hoạt onClick của Card
                 e.stopPropagation();

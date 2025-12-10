@@ -7,7 +7,7 @@ import {
 } from '../../features/promotion/api/staffPromotionService';
 import StaffPromotionModal from './components/StaffPromotionModal';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const { RangePicker } = DatePicker;
 
@@ -24,11 +24,29 @@ const StaffPromotionsPage = () => {
     const [logAction, setLogAction] = useState(null);
     const [logEntries, setLogEntries] = useState([]);
     const [logsLoading, setLogsLoading] = useState(false);
+    const [selectedPromotionId, setSelectedPromotionId] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         loadPromotions();
     }, []);
+
+    // Đọc query params để mở tab logs và filter promotion
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        const pId = params.get('promotionId');
+        if (tab === 'logs') {
+            setActiveTab('logs');
+            if (pId) {
+                const numId = Number(pId);
+                if (!Number.isNaN(numId)) {
+                    setSelectedPromotionId(numId);
+                }
+            }
+        }
+    }, [location.search]);
 
     const loadPromotions = async () => {
         setLoading(true);
@@ -250,21 +268,115 @@ const StaffPromotionsPage = () => {
     ];
 
     const tabItems = [
+        { key: 'all', label: 'Tất cả' },
+        { key: 'active', label: 'Đang hoạt động' },
+        { key: 'pending', label: 'Chờ duyệt' },
+        { key: 'expired', label: 'Hết hạn' },
+        { key: 'logs', label: 'Nhật ký hoạt động' },
+    ];
+
+    const fetchLogsByRange = useCallback(async (rangeToUse, options = {}) => {
+        const { silent = false } = options;
+        if (!rangeToUse || rangeToUse.length !== 2) {
+            if (!silent) message.warning('Vui lòng chọn khoảng ngày để xem nhật ký khuyến mãi');
+            return;
+        }
+        const [start, end] = rangeToUse;
+        if (!start || !end) {
+            if (!silent) message.warning('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
+            return;
+        }
+        try {
+            setLogsLoading(true);
+            const startDate = start.format('YYYY-MM-DD');
+            const endDate = end.format('YYYY-MM-DD');
+            const response = await getPromotionLogsByDateRange(startDate, endDate);
+            setLogEntries(response.data || []);
+        } catch (error) {
+            console.error('Error loading promotion logs:', error);
+            if (!silent) message.error('Không thể tải nhật ký khuyến mãi theo khoảng thời gian đã chọn');
+        } finally {
+            setLogsLoading(false);
+        }
+    }, []);
+
+    const handleFetchLogs = (rangeOverride) => {
+        fetchLogsByRange(rangeOverride || logDateRange);
+    };
+
+    const filteredLogs = useMemo(() => {
+        let logs = logEntries;
+        if (selectedPromotionId) {
+            logs = logs.filter((log) => Number(log.promotionId) === Number(selectedPromotionId));
+        }
+        if (logAction) {
+            logs = logs.filter((log) => log.action === logAction);
+        }
+        return logs;
+    }, [logEntries, logAction, selectedPromotionId]);
+
+    useEffect(() => {
+        if (activeTab === 'logs') {
+            let range = logDateRange;
+            if (!range || range.length !== 2) {
+                range = getDefaultLogRange();
+                setLogDateRange(range);
+            }
+            fetchLogsByRange(range, { silent: true });
+        }
+    }, [activeTab, logDateRange, fetchLogsByRange]);
+
+    const logColumns = [
         {
-            key: 'all',
-            label: 'Tất cả',
+            title: 'ID khuyến mãi',
+            dataIndex: 'promotionId',
+            key: 'promotionId',
+            width: 120,
         },
         {
-            key: 'active',
-            label: 'Đang hoạt động',
+            title: 'Mã khuyến mãi',
+            dataIndex: 'promotionCode',
+            key: 'promotionCode',
+            width: 150,
+            render: (code) => (
+                <Tag color="blue" style={{ fontWeight: 'bold', fontSize: '13px', padding: '4px 12px', borderRadius: '4px' }}>
+                    {code}
+                </Tag>
+            ),
         },
         {
-            key: 'pending',
-            label: 'Chờ duyệt',
+            title: 'Hành động',
+            dataIndex: 'action',
+            key: 'action',
+            width: 140,
+            render: (action) => {
+                const actionColors = {
+                    CREATE: { bg: '#f3e8ff', border: '#b37feb', text: '#531dab' },
+                    APPROVE: { bg: '#f6ffed', border: '#b7eb8f', text: '#237804' },
+                    REJECT: { bg: '#fff1f0', border: '#ffa39e', text: '#a8071a' },
+                    PAUSE: { bg: '#fff7e6', border: '#ffd591', text: '#ad4e00' },
+                    RESUME: { bg: '#e6fffb', border: '#87e8de', text: '#006d75' },
+                };
+                const colorConfig = actionColors[action] || { bg: '#f3e8ff', border: '#b37feb', text: '#531dab' };
+                return (
+                    <Tag style={{ backgroundColor: colorConfig.bg, borderColor: colorConfig.border, color: colorConfig.text, borderRadius: 6, padding: '2px 10px', fontWeight: 600 }}>
+                        {action}
+                    </Tag>
+                );
+            },
         },
         {
-            key: 'expired',
-            label: 'Hết hạn',
+            title: 'Người thực hiện',
+            dataIndex: 'actorName',
+            key: 'actorName',
+            width: 160,
+        },
+        {
+            title: 'Thời gian',
+            dataIndex: 'logTime',
+            key: 'logTime',
+            width: 200,
+            render: (time) => (time ? dayjs(time).format('DD/MM/YYYY HH:mm:ss') : '-'),
         },
     ];
 
@@ -303,17 +415,90 @@ const StaffPromotionsPage = () => {
                 onChange={setActiveTab}
             />
 
-            <Table
-                columns={columns}
-                dataSource={filteredPromotions}
-                rowKey="id"
-                loading={loading}
-                pagination={{
-                    defaultPageSize: 10,
-                    showSizeChanger: true,
-                    showTotal: (total) => `Tổng ${total} khuyến mãi`,
-                }}
-            />
+            {activeTab === 'logs' ? (
+                <div>
+                    <div style={{
+                        display: 'flex',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                        marginBottom: 16,
+                    }}>
+                        <RangePicker
+                            format="DD/MM/YYYY"
+                            size="large"
+                            allowClear
+                            onChange={(values) => setLogDateRange(values || [])}
+                            value={logDateRange}
+                            placeholder={['Từ ngày', 'Đến ngày']}
+                            style={{
+                                flex: '1 1 260px',
+                                minWidth: 240,
+                                height: 44,
+                                borderRadius: 10,
+                                padding: '6px 12px'
+                            }}
+                        />
+                        <Select
+                            allowClear
+                            placeholder="Chọn hành động"
+                            size="large"
+                            value={logAction}
+                            onChange={(value) => setLogAction(value || null)}
+                            style={{
+                                flex: '0 0 220px',
+                                minWidth: 220,
+                            }}
+                            options={[
+                                { label: 'CREATE', value: 'CREATE' },
+                                { label: 'APPROVE', value: 'APPROVE' },
+                                { label: 'REJECT', value: 'REJECT' },
+                                { label: 'PAUSE', value: 'PAUSE' },
+                                { label: 'RESUME', value: 'RESUME' },
+                            ]}
+                        />
+                        <Button
+                            onClick={handleFetchLogs}
+                            size="large"
+                            type="primary"
+                            style={{
+                                flex: '0 0 auto',
+                                height: 44,
+                                borderRadius: 10,
+                                fontWeight: 600,
+                                padding: '0 28px'
+                            }}
+                        >
+                            Tải nhật ký
+                        </Button>
+                    </div>
+                    <Table
+                        columns={logColumns}
+                        dataSource={filteredLogs}
+                        rowKey={(record, index) => `${record.promotionId}-${record.action}-${record.logTime}-${index}`}
+                        loading={logsLoading}
+                        bordered
+                        pagination={{
+                            defaultPageSize: 10,
+                            showSizeChanger: true,
+                            showTotal: (total) => `Tổng ${total} nhật ký`,
+                            pageSizeOptions: ['10', '20', '50'],
+                        }}
+                        scroll={{ x: 900 }}
+                    />
+                </div>
+            ) : (
+                <Table
+                    columns={columns}
+                    dataSource={filteredPromotions}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={{
+                        defaultPageSize: 10,
+                        showSizeChanger: true,
+                        showTotal: (total) => `Tổng ${total} khuyến mãi`,
+                    }}
+                />
+            )}
 
             <StaffPromotionModal
                 open={promotionModalOpen}

@@ -4,7 +4,8 @@ import adminApiClient from '../../../services/adminApiClient';
  * Admin Book Service - sử dụng adminApiClient với admin token
  */
 
-export const getAllBooks = () => adminApiClient.get('books');
+export const getAllBooks = (includeInactive = false) =>
+  adminApiClient.get('books', { params: { includeInactive } });
 
 export const getBookById = (id) => adminApiClient.get(`books/${id}`);
 

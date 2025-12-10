@@ -5,7 +5,7 @@ import { getPromotionLogsByDateRange } from '../../features/promotion/api/promot
 import { adminPromotionService } from '../../features/promotion/api/adminPromotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const { RangePicker } = DatePicker;
 
@@ -22,7 +22,9 @@ const AdminPromotionsPage = () => {
     const [logAction, setLogAction] = useState(null);
     const [logEntries, setLogEntries] = useState([]);
     const [logsLoading, setLogsLoading] = useState(false);
+    const [selectedPromotionId, setSelectedPromotionId] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleApprove = async (id) => {
         try {
@@ -71,6 +73,22 @@ const AdminPromotionsPage = () => {
     useEffect(() => {
         loadPromotions();
     }, []);
+
+    // Đọc query param để mở tab logs và filter promotion
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        const pId = params.get('promotionId');
+        if (tab === 'logs') {
+            setActiveTab('logs');
+            if (pId) {
+                const numId = Number(pId);
+                if (!Number.isNaN(numId)) {
+                    setSelectedPromotionId(numId);
+                }
+            }
+        }
+    }, [location.search]);
 
     const loadPromotions = async () => {
         setLoading(true);
@@ -189,9 +207,15 @@ const AdminPromotionsPage = () => {
     };
 
     const filteredLogs = useMemo(() => {
-        if (!logAction) return logEntries;
-        return logEntries.filter((log) => log.action === logAction);
-    }, [logEntries, logAction]);
+        let logs = logEntries;
+        if (selectedPromotionId) {
+            logs = logs.filter((log) => Number(log.promotionId) === Number(selectedPromotionId));
+        }
+        if (logAction) {
+            logs = logs.filter((log) => log.action === logAction);
+        }
+        return logs;
+    }, [logEntries, logAction, selectedPromotionId]);
 
     useEffect(() => {
         if (activeTab === 'logs') {

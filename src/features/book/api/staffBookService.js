@@ -5,8 +5,8 @@ import staffApiClient from '../../../services/staffApiClient';
  * Sử dụng staffApiClient với staffToken
  */
 
-export const getAllBooks = () => {
-    return staffApiClient.get('books');
+export const getAllBooks = (includeInactive = false) => {
+    return staffApiClient.get('books', { params: { includeInactive } });
 };
 
 export const getBookById = (id) => {

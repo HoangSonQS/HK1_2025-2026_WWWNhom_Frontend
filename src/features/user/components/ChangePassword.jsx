@@ -50,7 +50,7 @@ function ChangePassword() {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">CHANGE PASSWORD</h1>
+                    <h1 className="login-title">ĐỔI MẬT KHẨU</h1>
                 </div>
                 
                 <Form
@@ -147,7 +147,7 @@ function ChangePassword() {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đổi mật khẩu...' : 'CHANGE PASSWORD'}
+                            {loading ? 'Đang đổi mật khẩu...' : 'ĐỔI MẬT KHẨU'}
                         </Button>
                     </Form.Item>
 
@@ -159,7 +159,7 @@ function ChangePassword() {
                             size="large"
                             block
                         >
-                            CANCEL
+                            HỦY
                         </Button>
                     </Form.Item>
                 </Form>

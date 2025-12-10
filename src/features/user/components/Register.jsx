@@ -53,7 +53,7 @@ const Register = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">REGISTER</h1>
+                    <h1 className="login-title">ĐĂNG KÝ</h1>
                 </div>
                 
                 <Form
@@ -175,7 +175,7 @@ const Register = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đăng ký...' : 'REGISTER'}
+                            {loading ? 'Đang đăng ký...' : 'ĐĂNG KÝ'}
                         </Button>
                     </Form.Item>
 
@@ -187,14 +187,14 @@ const Register = () => {
                             size="large"
                             block
                         >
-                            RESET
+                            XÓA FORM
                         </Button>
                     </Form.Item>
 
                     <div className="register-link-container">
-                        <span>Already have an account? </span>
+                        <span>Đã có tài khoản? </span>
                         <Link to={ROUTES.LOGIN} className="register-link">
-                            Login
+                            Đăng nhập
                         </Link>
                     </div>
                 </Form>

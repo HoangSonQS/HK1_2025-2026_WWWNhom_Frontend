@@ -69,7 +69,7 @@ const ResetPassword = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">RESET PASSWORD</h1>
+                    <h1 className="login-title">ĐẶT LẠI MẬT KHẨU</h1>
                 </div>
                 
                 <Form
@@ -159,13 +159,13 @@ const ResetPassword = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đặt lại mật khẩu...' : 'RESET PASSWORD'}
+                            {loading ? 'Đang đặt lại mật khẩu...' : 'ĐẶT LẠI MẬT KHẨU'}
                         </Button>
                     </Form.Item>
 
                     <div className="register-link-container">
                         <Link to={ROUTES.LOGIN} className="register-link">
-                            ← Back to Login
+                            ← Quay lại đăng nhập
                         </Link>
                     </div>
                 </Form>

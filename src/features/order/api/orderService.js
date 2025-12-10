@@ -36,3 +36,9 @@ export const updateOrderStatus = async (orderId, status) => {
   return response;
 };
 
+export const updatePaymentMethod = async (orderId, paymentMethod) => {
+  const response = await apiClient.put(`/orders/${orderId}/payment-method`, {
+    paymentMethod,
+  });
+  return response;
+};

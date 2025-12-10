@@ -123,7 +123,7 @@ const Login = () => {
         <div className="login-page-container">
             <div className="login-form-wrapper">
                 <div className="login-form-header">
-                    <h1 className="login-title">LOGIN</h1>
+                    <h1 className="login-title">ĐĂNG NHẬP</h1>
                 </div>
                 
                 <Form
@@ -187,10 +187,10 @@ const Login = () => {
 
                     <div className="login-form-options">
                         <Form.Item name="remember" valuePropName="checked" noStyle>
-                            <Checkbox>Remember me</Checkbox>
+                            <Checkbox>Ghi nhớ đăng nhập</Checkbox>
                         </Form.Item>
                         <Link to={ROUTES.FORGOT_PASSWORD} className="forgot-password-link">
-                            Forgot your password?
+                            Quên mật khẩu?
                         </Link>
                     </div>
 
@@ -203,14 +203,14 @@ const Login = () => {
                             block
                             loading={loading}
                         >
-                            {loading ? 'Đang đăng nhập...' : 'LOGIN'}
+                            {loading ? 'Đang đăng nhập...' : 'ĐĂNG NHẬP'}
                         </Button>
                     </Form.Item>
 
                     <div className="register-link-container">
-                        <span>Don't have an account? </span>
+                        <span>Chưa có tài khoản? </span>
                         <Link to={ROUTES.REGISTER} className="register-link">
-                            Register
+                            Đăng ký
                         </Link>
                     </div>
                 </Form>

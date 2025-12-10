@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Layout, Button, Spin, Empty, message } from 'antd';
 import { BookOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -65,6 +65,16 @@ const Home = () => {
         navigate(`/books?category=${categoryId}`);
     };
 
+    // Sắp xếp thể loại theo số lượng sách giảm dần
+    const sortedCategories = useMemo(() => {
+        if (!categories?.length) return [];
+        return [...categories].sort((a, b) => {
+            const countA = booksByCategory[a.id]?.length || 0;
+            const countB = booksByCategory[b.id]?.length || 0;
+            return countB - countA;
+        });
+    }, [categories, booksByCategory]);
+
     return (
         <Layout className="home-layout">
             <Header />
@@ -86,11 +96,11 @@ const Home = () => {
                     </div>
 
                     <Spin spinning={loading}>
-                        {categories.length === 0 ? (
+                        {sortedCategories.length === 0 ? (
                             <Empty description="Không có thể loại nào" />
                         ) : (
                             <div className="categories-sections">
-                                {categories.map((category) => {
+                                {sortedCategories.map((category) => {
                                     const books = booksByCategory[category.id] || [];
                                     if (books.length === 0) return null;
 

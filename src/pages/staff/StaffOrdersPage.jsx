@@ -87,6 +87,8 @@ const StaffOrdersPage = () => {
         return "Đã hủy";
       case "RETURNED":
         return "Đã trả lại";
+      case "UNPAID":
+        return "Chưa thanh toán";
       default:
         return status;
     }

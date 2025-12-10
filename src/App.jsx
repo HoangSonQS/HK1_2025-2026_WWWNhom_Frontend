@@ -8,7 +8,11 @@ const AppContent = () => {
   const path = location.pathname || '';
   const hideChat =
     path.startsWith('/admin') ||
-    path.startsWith('/staff');
+    path.startsWith('/staff') ||
+    path.startsWith('/auth/login') ||
+    path === '/register' ||
+    path.startsWith('/password/forgot') ||
+    path.startsWith('/password/reset');
 
   return (
     <>

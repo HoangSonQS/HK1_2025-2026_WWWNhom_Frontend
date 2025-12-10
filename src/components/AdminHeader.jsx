@@ -56,6 +56,8 @@ const AdminHeader = () => {
       await logout();
       // Dispatch event để các component khác biết adminToken đã bị xóa
       window.dispatchEvent(new CustomEvent("adminTokenChanged"));
+      // Dispatch event để reset chatbox (nếu có)
+      window.dispatchEvent(new CustomEvent("userLogout"));
       navigate(ROUTES.ADMIN_LOGIN);
     } catch (error) {
       console.error("Logout error:", error);

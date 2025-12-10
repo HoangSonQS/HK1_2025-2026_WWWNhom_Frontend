@@ -20,6 +20,33 @@ const ChatbotWidget = () => {
             window.removeEventListener('openChatbotWidget', handleOpenWidget);
         };
     }, []);
+
+    // Reset chatbox khi đăng xuất
+    useEffect(() => {
+        const handleLogout = () => {
+            // Reset messages về trạng thái ban đầu
+            setMessages([
+                {
+                    id: 1,
+                    text: 'Xin chào! Tôi là trợ lý AI của SEBook. Tôi có thể giúp bạn tìm sách, trả lời câu hỏi về đơn hàng, và nhiều hơn nữa. Bạn cần hỗ trợ gì?',
+                    sender: 'bot',
+                    timestamp: new Date()
+                }
+            ]);
+            // Reset conversation ID
+            setConversationId(null);
+            // Reset input
+            setInputMessage('');
+            // Đóng widget nếu đang mở
+            setIsOpen(false);
+            setIsMinimized(false);
+        };
+        
+        window.addEventListener('userLogout', handleLogout);
+        return () => {
+            window.removeEventListener('userLogout', handleLogout);
+        };
+    }, []);
     const [isMinimized, setIsMinimized] = useState(false);
     const [messages, setMessages] = useState([
         {

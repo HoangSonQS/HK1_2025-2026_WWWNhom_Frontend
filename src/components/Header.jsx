@@ -377,6 +377,8 @@ const Header = () => {
       setIsAdminStaff(false);
       // Dispatch event để các component khác biết jwtToken đã bị xóa
       window.dispatchEvent(new CustomEvent('jwtTokenChanged'));
+      // Dispatch event để reset chatbox
+      window.dispatchEvent(new CustomEvent('userLogout'));
       navigate(ROUTES.HOME);
     }
   };

@@ -487,17 +487,17 @@ const StaffPromotionsPage = () => {
                     />
                 </div>
             ) : (
-                <Table
-                    columns={columns}
-                    dataSource={filteredPromotions}
-                    rowKey="id"
-                    loading={loading}
-                    pagination={{
+            <Table
+                columns={columns}
+                dataSource={filteredPromotions}
+                rowKey="id"
+                loading={loading}
+                pagination={{
                         defaultPageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng ${total} khuyến mãi`,
-                    }}
-                />
+                    showSizeChanger: true,
+                    showTotal: (total) => `Tổng ${total} khuyến mãi`,
+                }}
+            />
             )}
 
             <StaffPromotionModal

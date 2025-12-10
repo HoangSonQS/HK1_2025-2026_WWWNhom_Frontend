@@ -62,6 +62,8 @@ const StaffHeader = () => {
   const handleLogout = async () => {
     try {
       await logout(); // staffAuthService.logout
+      // Dispatch event để reset chatbox (nếu có)
+      window.dispatchEvent(new CustomEvent("userLogout"));
       navigate(ROUTES.STAFF_LOGIN);
     } catch (error) {
       console.error("Logout error:", error);

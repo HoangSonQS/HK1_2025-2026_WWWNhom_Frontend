@@ -32,7 +32,8 @@ const StaffOrdersPage = () => {
     setLoading(true);
     try {
       const response = await getAllOrders();
-      setOrders(response.data || []);
+      const data = response.data || [];
+      setOrders(sortByDateDesc(data));
     } catch (error) {
       if (error.response?.status === 401) {
         message.warning("Vui lòng đăng nhập để xem đơn hàng");
@@ -44,6 +45,14 @@ const StaffOrdersPage = () => {
       setLoading(false);
     }
   };
+
+  // Sắp xếp mới nhất -> cũ nhất
+  const sortByDateDesc = (list) =>
+    [...list].sort(
+      (a, b) =>
+        new Date(b?.orderDate || b?.createdAt || 0) -
+        new Date(a?.orderDate || a?.createdAt || 0)
+    );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -102,7 +111,7 @@ const StaffOrdersPage = () => {
     }).format(amount);
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = sortByDateDesc(orders).filter((order) => {
     if (activeTab === "all") return true;
     return order.status === activeTab;
   });

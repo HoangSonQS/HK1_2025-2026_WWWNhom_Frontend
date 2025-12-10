@@ -31,7 +31,8 @@ const AdminOrdersPage = () => {
     setLoading(true);
     try {
       const response = await getAllOrders();
-      setOrders(response.data || []);
+      const data = response.data || [];
+      setOrders(sortByDateDesc(data));
     } catch (error) {
       if (error.response?.status === 401) {
         message.warning("Vui lòng đăng nhập để xem đơn hàng");
@@ -43,6 +44,14 @@ const AdminOrdersPage = () => {
       setLoading(false);
     }
   };
+
+  // Sắp xếp mới nhất -> cũ nhất theo orderDate
+  const sortByDateDesc = (list) =>
+    [...list].sort(
+      (a, b) =>
+        new Date(b?.orderDate || b?.createdAt || 0) -
+        new Date(a?.orderDate || a?.createdAt || 0)
+    );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -178,7 +187,7 @@ const AdminOrdersPage = () => {
     },
   ];
 
-  const filteredOrders = getFilteredOrders();
+  const filteredOrders = sortByDateDesc(getFilteredOrders());
 
   const tabItems = [
     {

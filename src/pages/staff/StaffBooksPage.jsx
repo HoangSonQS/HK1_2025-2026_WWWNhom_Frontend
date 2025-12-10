@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Popconfirm, message, Image } from 'antd';
+import { Table, Button, Space, Popconfirm, message, Image, Switch } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined } from '@ant-design/icons';
 import { getAllBooks, deleteBook } from '../../features/book/api/staffBookService';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -14,6 +14,7 @@ const StaffBooksPage = () => {
     const [editingBookId, setEditingBookId] = useState(null);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
+    const [showInactive, setShowInactive] = useState(false);
 
     useEffect(() => {
         loadBooks();
@@ -27,12 +28,12 @@ const StaffBooksPage = () => {
         return () => {
             window.removeEventListener('stockUpdated', handleStockUpdate);
         };
-    }, []);
+    }, [showInactive]);
 
     const loadBooks = async () => {
         setLoading(true);
         try {
-            const response = await getAllBooks();
+            const response = await getAllBooks(showInactive);
             const booksData = response.data || [];
             
             // Sắp xếp theo ID tăng dần
@@ -257,6 +258,12 @@ const StaffBooksPage = () => {
                 >
                     Thêm sách mới
                 </Button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                <Space>
+                    <span>Hiển thị sách đã ẩn</span>
+                    <Switch checked={showInactive} onChange={setShowInactive} />
+                </Space>
             </div>
             <Table
                 columns={columns}

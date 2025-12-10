@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Checkbox, Button, message } from 'antd';
 import { adminSupplierService } from '../../../features/supplier/api/adminSupplierService';
-import { useNavigate } from 'react-router-dom';
+import { staffSupplierService } from '../../../features/supplier/api/staffSupplierService';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../../utils/constants';
 
 const { TextArea } = Input;
 
 const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStaffRoute = location.pathname.startsWith('/staff');
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
 
@@ -34,6 +37,7 @@ const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
+      const service = isStaffRoute ? staffSupplierService : adminSupplierService;
       const formData = {
         name: values.name,
         email: values.email || '',
@@ -43,10 +47,10 @@ const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
       };
 
       if (isEditMode) {
-        await adminSupplierService.updateSupplier(supplier.id, formData);
+        await service.updateSupplier(supplier.id, formData);
         message.success('Cập nhật nhà cung cấp thành công!');
       } else {
-        await adminSupplierService.createSupplier(formData);
+        await service.createSupplier(formData);
         message.success('Thêm nhà cung cấp thành công!');
       }
 
@@ -56,7 +60,7 @@ const SupplierModal = ({ isOpen, onClose, onSubmit, supplier, mode }) => {
       console.error('Error submitting supplier:', err);
       if (err.response?.status === 401) {
         message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+        navigate(isStaffRoute ? ROUTES.STAFF_LOGIN : ROUTES.ADMIN_LOGIN, { replace: true });
       } else {
         const errorMessage = err.response?.data?.message || err.message || 'Có lỗi xảy ra';
         message.error(errorMessage);

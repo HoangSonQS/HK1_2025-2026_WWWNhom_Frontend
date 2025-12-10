@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Popconfirm, message, Tag, Input, Select } from 'antd';
 import { PlusOutlined, EditOutlined, StopOutlined, SearchOutlined } from '@ant-design/icons';
 import { adminSupplierService } from '../../features/supplier/api/adminSupplierService';
+import { staffSupplierService } from '../../features/supplier/api/staffSupplierService';
 import SupplierModal from './components/SupplierModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../utils/constants';
 
 const { Search } = Input;
@@ -11,6 +12,8 @@ const { Option } = Select;
 
 const AdminSuppliersPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isStaffRoute = location.pathname.startsWith('/staff');
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +29,8 @@ const AdminSuppliersPage = () => {
   const loadSuppliers = async () => {
     setLoading(true);
     try {
-      const data = await adminSupplierService.getAllSuppliers();
+      const service = isStaffRoute ? staffSupplierService : adminSupplierService;
+      const data = await service.getAllSuppliers();
       
       // Sắp xếp theo ID tăng dần
       const sortedSuppliers = [...data].sort((a, b) => {
@@ -40,7 +44,7 @@ const AdminSuppliersPage = () => {
       console.error('Error fetching suppliers:', err);
       if (err.response?.status === 401) {
         message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+        navigate(isStaffRoute ? ROUTES.STAFF_LOGIN : ROUTES.ADMIN_LOGIN, { replace: true });
       } else {
         message.error('Không thể tải danh sách nhà cung cấp');
       }
@@ -63,14 +67,19 @@ const AdminSuppliersPage = () => {
 
   const handleDeactivate = async (supplier) => {
     try {
-      await adminSupplierService.deactivateSupplier(supplier.id);
-      message.success('Vô hiệu hóa nhà cung cấp thành công');
+      const service = isStaffRoute ? staffSupplierService : adminSupplierService;
+      if (isStaffRoute) {
+        await service.deleteSupplier(supplier.id);
+      } else {
+        await service.deactivateSupplier(supplier.id);
+      }
+      message.success(isStaffRoute ? 'Đã xoá nhà cung cấp' : 'Vô hiệu hóa nhà cung cấp thành công');
       loadSuppliers();
     } catch (err) {
       console.error('Error deactivating supplier:', err);
       if (err.response?.status === 401) {
         message.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-        navigate(ROUTES.ADMIN_LOGIN, { replace: true });
+        navigate(isStaffRoute ? ROUTES.STAFF_LOGIN : ROUTES.ADMIN_LOGIN, { replace: true });
       } else {
         message.error('Không thể vô hiệu hóa nhà cung cấp');
       }

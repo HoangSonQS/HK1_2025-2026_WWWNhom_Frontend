@@ -308,8 +308,15 @@ const CheckoutPage = () => {
           message.error(paymentErrorMessage);
         }
       } else {
-        message.success("Đặt hàng thành công!");
-        navigate(ROUTES.HOME);
+        // Khi chọn COD, redirect đến trang chi tiết đơn hàng vừa đặt
+        message.success({
+          content: `Đặt hàng thành công! Mã đơn hàng: #${order.id}. Bạn sẽ thanh toán khi nhận hàng (COD).`,
+          duration: 5,
+        });
+        // Delay một chút để người dùng đọc được thông báo trước khi redirect
+        setTimeout(() => {
+          navigate(`/orders/${order.id}`);
+        }, 500);
       }
     } catch (error) {
       console.error("Error in handlePlaceOrder:", error);

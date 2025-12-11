@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Button, Space, message, Tag, Tabs, Input, DatePicker, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { getPromotionLogsByDateRange } from '../../features/promotion/api/promotionService';
+import { STORAGE_KEYS } from '../../utils/constants';
 import { adminPromotionService } from '../../features/promotion/api/adminPromotionService';
 import PromotionModal from './components/PromotionModal';
 import dayjs from 'dayjs';
@@ -161,6 +162,43 @@ const AdminPromotionsPage = () => {
         return dayjs(endDate).isBefore(dayjs(), 'day');
     };
 
+    /**
+     * Decode adminToken (ưu tiên) hoặc staffToken để kiểm tra scope
+     */
+    const getTokenScopes = () => {
+        try {
+            const adminToken = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+            const staffToken = localStorage.getItem(STORAGE_KEYS.STAFF_TOKEN);
+            const token = adminToken || staffToken;
+            if (!token) return [];
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split('')
+                    .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            const decoded = JSON.parse(jsonPayload);
+            const scopeStr = decoded.scope || decoded.scp || '';
+            if (typeof scopeStr === 'string') {
+                return scopeStr.split(' ').map((s) => s.trim()).filter(Boolean);
+            }
+            if (Array.isArray(scopeStr)) return scopeStr;
+            return [];
+        } catch (e) {
+            console.warn('⚠️ Không decode được admin/staff token:', e);
+            return [];
+        }
+    };
+
+    const hasAdminScope = () => {
+        const scopes = getTokenScopes();
+        return scopes.some((s) =>
+            ['ADMIN', 'SCOPE_ADMIN', 'SELLER_STAFF', 'SCOPE_SELLER_STAFF'].includes(s)
+        );
+    };
+
     const isActive = (promotion) => {
         if (!promotion.isActive) return false;
         if (isExpired(promotion.endDate)) return false;
@@ -175,6 +213,18 @@ const AdminPromotionsPage = () => {
             if (!silent) {
                 message.warning('Vui lòng chọn khoảng ngày để xem nhật ký khuyến mãi');
             }
+            return;
+        }
+
+        // Kiểm tra scope trước khi call API (tránh dùng nhầm token CUSTOMER)
+        const scopes = getTokenScopes();
+        console.log('🔐 Promotion logs scopes (admin/staff token):', scopes);
+        if (!hasAdminScope()) {
+            if (!silent) {
+                message.error('Token hiện tại không có quyền (cần ADMIN hoặc SELLER_STAFF). Vui lòng đăng nhập lại bằng tài khoản có quyền.');
+            }
+            // Xóa dữ liệu cũ để tránh hiển thị nhầm
+            setLogEntries([]);
             return;
         }
 
@@ -195,7 +245,11 @@ const AdminPromotionsPage = () => {
         } catch (error) {
             console.error('Error loading promotion logs:', error);
             if (!silent) {
-                message.error('Không thể tải nhật ký khuyến mãi theo khoảng thời gian đã chọn');
+                if (error?.response?.status === 403) {
+                    message.error('Bạn không có quyền xem nhật ký khuyến mãi (yêu cầu ADMIN hoặc SELLER_STAFF)');
+                } else {
+                    message.error('Không thể tải nhật ký khuyến mãi theo khoảng thời gian đã chọn');
+                }
             }
         } finally {
             setLogsLoading(false);
@@ -238,12 +292,18 @@ const AdminPromotionsPage = () => {
     }, [promotions, searchKeyword]);
 
     const pendingPromotions = useMemo(
-        () => filteredPromotions.filter(promo => promo.status === 'PENDING'),
+        () => filteredPromotions.filter(promo => {
+            const status = promo.status || (promo.isApproved ? 'ACTIVE' : 'PENDING');
+            return status === 'PENDING' || (!promo.isApproved && !promo.status);
+        }),
         [filteredPromotions]
     );
 
     const approvedPromotions = useMemo(
-        () => filteredPromotions.filter(promo => promo.status === 'ACTIVE'),
+        () => filteredPromotions.filter(promo => {
+            const status = promo.status || (promo.isApproved ? 'ACTIVE' : 'PENDING');
+            return status === 'ACTIVE';
+        }),
         [filteredPromotions]
     );
 
@@ -349,29 +409,24 @@ const AdminPromotionsPage = () => {
             align: 'center',
             render: (_, record) => {
                 const expired = isExpired(record.endDate);
-                const approved = record.isApproved ?? record.status === 'ACTIVE';
-                
-                if (!approved || record.status === 'PENDING') {
+                const status = record.status || (record.isApproved ? 'ACTIVE' : 'PENDING');
+
+                if (status === 'PENDING' || (!record.isApproved && !record.status)) {
                     return <Tag color="orange">Chờ duyệt</Tag>;
                 }
-                if (record.status === 'REJECTED') {
+                if (status === 'REJECTED') {
                     return <Tag color="red">Từ chối</Tag>;
                 }
-                if (record.status === 'PAUSED') {
+                if (status === 'PAUSED') {
                     return <Tag color="default">Tạm dừng</Tag>;
                 }
                 if (expired) {
                     return <Tag color="red">Hết hạn</Tag>;
                 }
-                // Kiểm tra xem đã đến thời gian bắt đầu chưa
-                if (approved && record.status === 'ACTIVE' && isActive(record)) {
+                if (status === 'ACTIVE' && isActive(record)) {
                     return <Tag color="green">Đang hoạt động</Tag>;
                 }
-                // Đã duyệt nhưng chưa đến thời gian bắt đầu
-                if (approved && record.status === 'ACTIVE' && !isActive(record)) {
-                    return <Tag color="default">Chưa bắt đầu</Tag>;
-                }
-                return <Tag color="green">Đang hoạt động</Tag>;
+                return <Tag color="default">Chưa bắt đầu</Tag>;
             },
         },
         {

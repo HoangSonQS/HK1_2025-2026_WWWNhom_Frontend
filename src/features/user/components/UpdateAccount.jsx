@@ -52,7 +52,19 @@ const UpdateAccount = () => {
         setLoadingAddresses(true);
         try {
             const response = await getMyAddresses();
-            setAddresses(response.data || []);
+            const raw = response.data || [];
+            // Chuẩn hóa cờ mặc định từ backend (có thể trả về default/isDefault/1/true)
+            const normalized = raw.map((addr) => {
+                const flag = isDefaultAddress(addr) || addr.default === true || addr.default === 1 || addr.default === '1' || addr.default === 'true';
+                return { ...addr, isDefault: flag };
+            });
+            // Đưa địa chỉ mặc định lên đầu danh sách
+            normalized.sort((a, b) => {
+                const aDef = isDefaultAddress(a);
+                const bDef = isDefaultAddress(b);
+                return Number(bDef) - Number(aDef);
+            });
+            setAddresses(normalized);
         } catch (error) {
             console.error('Error loading addresses:', error);
             message.error('Không thể tải danh sách địa chỉ');
@@ -203,6 +215,13 @@ const UpdateAccount = () => {
         'OTHER': 'Khác'
     };
 
+    const isDefaultAddress = (address) => {
+        // Hỗ trợ boolean, number, string hoặc field "default" từ backend
+        if (!address) return false;
+        const flag = address.isDefault ?? address.default;
+        return flag === true || flag === 1 || flag === '1' || flag === 'true' || flag === 'TRUE' || flag === 'True';
+    };
+
     const tabItems = [
         {
             key: '1',
@@ -340,14 +359,21 @@ const UpdateAccount = () => {
                         </Card>
                     ) : (
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                            {addresses.map((address) => (
+                            {addresses.map((address) => {
+                                const defaultFlag = isDefaultAddress(address);
+                                return (
                                 <Card
                                     key={address.id}
+                                    style={{
+                                        border: defaultFlag ? '1px solid #52c41a' : undefined,
+                                        boxShadow: defaultFlag ? '0 2px 8px rgba(82,196,26,0.15)' : undefined
+                                    }}
+                                    headStyle={defaultFlag ? { background: '#f6ffed' } : undefined}
                                     title={
                                         <Space>
                                             <HomeOutlined />
                                             <span>{addressTypeLabels[address.addressType] || address.addressType}</span>
-                                            {address.isDefault && (
+                                            {defaultFlag && (
                                                 <Tag color="green" icon={<CheckCircleOutlined />}>
                                                     Mặc định
                                                 </Tag>
@@ -356,7 +382,7 @@ const UpdateAccount = () => {
                                     }
                                     extra={
                                         <Space>
-                                            {!address.isDefault && (
+                                            {!defaultFlag && (
                                                 <Button
                                                     type="link"
                                                     size="small"
@@ -364,6 +390,11 @@ const UpdateAccount = () => {
                                                 >
                                                     Đặt mặc định
                                                 </Button>
+                                            )}
+                                            {defaultFlag && (
+                                                <Tag color="green" style={{ marginRight: 8 }}>
+                                                    Địa chỉ mặc định
+                                                </Tag>
                                             )}
                                             <Button
                                                 type="link"
@@ -387,7 +418,7 @@ const UpdateAccount = () => {
                                     <p><strong>Địa chỉ:</strong> {address.street}, {address.ward}, {address.district}, {address.city}</p>
                                     {address.phoneNumber && <p><strong>Số điện thoại:</strong> {address.phoneNumber}</p>}
                                 </Card>
-                            ))}
+                            );})}
                         </Space>
                     )}
                 </div>

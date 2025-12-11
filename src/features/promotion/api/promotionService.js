@@ -1,4 +1,17 @@
 import apiClient from '../../../services/apiClient';
+import adminClient from '../../../services/adminApiClient';
+import { STORAGE_KEYS } from '../../../utils/constants';
+
+// Lấy client với adminToken. Nếu thiếu adminToken sẽ throw để phía UI hiển thị rõ.
+const getAdminClient = () => {
+  const adminToken = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+  if (!adminToken) {
+    const err = new Error('MISSING_ADMIN_TOKEN');
+    err.code = 'MISSING_ADMIN_TOKEN';
+    throw err;
+  }
+  return adminClient;
+};
 
 /**
  * Promotion Service - Tất cả các API calls liên quan đến khuyến mãi
@@ -53,21 +66,17 @@ export const searchPromotions = (keyword) => {
 
 // Lấy danh sách khuyến mãi có log trong khoảng ngày
 export const getPromotionsByLogDateRange = (startDate, endDate) => {
-  return apiClient.get('promotion-logs/promotions-by-date-range', {
-    params: {
-      startDate,
-      endDate,
-    },
+  const client = getAdminClient();
+  return client.get('promotion-logs/promotions-by-date-range', {
+    params: { startDate, endDate },
   });
 };
 
 // Lấy chi tiết nhật ký khuyến mãi theo khoảng ngày (dựa trên log_time)
 export const getPromotionLogsByDateRange = (startDate, endDate) => {
-  return apiClient.get('promotion-logs/date-range', {
-    params: {
-      startDate,
-      endDate,
-    },
+  const client = getAdminClient();
+  return client.get('promotion-logs/date-range', {
+    params: { startDate, endDate },
   });
 };
 
